@@ -1,0 +1,763 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files\OTRL">
+      <UniqueIdentifier>{078951a3-0665-4ad8-a79f-e1d60a6c4251}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OTRL">
+      <UniqueIdentifier>{fdf4997a-7a96-4835-8caf-fb069a44d43c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\wtwAPI">
+      <UniqueIdentifier>{39903c1d-804e-4dfb-86dc-d875b9359cc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{816aa75b-0998-497d-a820-46ad4eb9d4f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt">
+      <UniqueIdentifier>{ca4fe2f5-240c-471f-a53a-836a25f45853}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\libgcrypt">
+      <UniqueIdentifier>{b1933b9d-3646-4717-8f3a-b5a464529d92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\libgcrypt\src">
+      <UniqueIdentifier>{7f03704a-6a3a-4e28-9d01-f43168399824}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\gpg-error">
+      <UniqueIdentifier>{13adac95-1dcb-440d-8d4e-fca0cca55320}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\gpg-error\src">
+      <UniqueIdentifier>{ec3766f0-2ee5-481c-be6d-37ca2d20960c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\libgcrypt\cipher">
+      <UniqueIdentifier>{d96f0985-6c23-4c06-92fd-8fc1988e70ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\libgcrypt\mpi">
+      <UniqueIdentifier>{3962af66-6c01-4d74-bbe5-a97de08b43ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\libgcrypt\random">
+      <UniqueIdentifier>{b84198b6-b4b8-4705-af13-1acb7c705ced}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\libgcrypt\compat">
+      <UniqueIdentifier>{5cf4dd81-2cb8-426b-96f2-64d17d4548c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libgcrypt\libgcrypt\mpi\generic">
+      <UniqueIdentifier>{508ade83-1d43-4e1f-b88b-b0ea72cc3147}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+    <Text Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwOTRmessaging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingsBroker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatBroker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\version.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\userstate.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\tlv.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\sm.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\serial.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\proto.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\privkey-t.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\privkey.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\message.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\mem.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\instag.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\dh.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\context_priv.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\context.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\b64.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="OTRL\auth.h">
+      <Filter>Header Files\OTRL</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\plInterface.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\utlIgnore.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\utlNews.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\utlWebUtils7.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwAbout.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwAccountManager.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwArchImport.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwArchive.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwArchiveOnline.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwBrowserInterface.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwCaps.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwCEL.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwChatCommandBar.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwChatHeaderBar.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwChatPanels.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwChatWindow.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwCleanup.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwCommandLine.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwConference.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwContact.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwContactFavourites.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwContactList.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwCrypto.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwDefaultActions.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwEvents.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwExtCtData.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwFile.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwFileShareMechs.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwFileTransferManager.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwGeoLoc.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwGraph.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwGroupOptions.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwHttpServices.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwI18N.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwInputWindows.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwLog.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwMenu.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwMessageHelper.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwMeta.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwNetLib.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwNetSett.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwOptions.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwOther.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwPanels.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwPlugin.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwPluginSettings.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwProcAddr.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwProperties.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwProtocol.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwProtocolExt.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwScriptInterface.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwSession.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwSettings.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwSMS.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwStandardImpl.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwStatusWnd.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwTask.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwThreadSwitch.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwTimer.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwToolTips.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwTray.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwTrayNotify.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwUPnP.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwUriHandlers.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwVCard.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwWebAuthWindow.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwWebInfo.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwWindowMessageFilter.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwWinInet.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwWizard.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwXMPP.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wtwOTRmessaging.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingsBroker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChatBroker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\auth.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\b64.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\context.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\context_priv.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\dh.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\instag.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\mem.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\message.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\privkey.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\proto.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\sm.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\tlv.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="OTRL\userstate.c">
+      <Filter>Source Files\OTRL</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\visibility.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\strerror.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\gpg-error_visibility.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\blowfish.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\des.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\misc.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-selftest.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\global.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\arcfour.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\estream-printf.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\estream.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\version.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\init.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\w32-gettext.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\code-from-errno.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\code-to-errno.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\strsource.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\posix-thread.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgpg-error\src\posix-lock.c">
+      <Filter>Source Files\libgcrypt\gpg-error\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\ec.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\fips.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\sexp.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpiutil.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-bit.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-curves.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-add.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-gcd.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-div.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-mul.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpicoder.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\random\random.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\random</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\primegen.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\kdf.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\md.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\pubkey.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\ath.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\secmem.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\stdmem.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\elgamal.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\dsa.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\compat\compat.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\compat</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\hwfeatures.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\hmac-tests.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\random\random-system.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\random</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\random\random-fips.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\random</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\random\random-csprng.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\random</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\hwf-x86.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\random\rndw32.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\random</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\random\rndhw.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\random</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cast5.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rijndael.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpih-div.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-lshift.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-mod.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-sub1.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rsa.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\twofish.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\serpent.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rfc2268.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\seed.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\camellia-glue.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\idea.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\salsa20.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\gost28147.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-cmac.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-cbc.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-cfb.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-ofb.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-ctr.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-aeswrap.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-ccm.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-gcm.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-cmp.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-pow.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-inv.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\missing-string.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-mpow.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\pubkey-util.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\context_libgcrypt.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-misc.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\dsa-common.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac-hmac.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac-cmac.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac-gmac.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\crc.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\tiger.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\md4.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\md5.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rmd160.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-mul1.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpih-mul.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-add1.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-rshift.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-inline.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-mul3.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-mul2.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi\generic</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rsa-common.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\hash-common.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\sha1.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\sha256.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\sha512.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\whirlpool.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\stribog.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\src\hmac256.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\src</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-scan.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-gost.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-eddsa.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-ecdsa.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\scrypt.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\gostr3411-94.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\ec-ed25519.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\mpi</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\camellia.c">
+      <Filter>Source Files\libgcrypt\libgcrypt\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="libgcrypt\blad3master_gettimeofday.c">
+      <Filter>Source Files\libgcrypt</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wtwOTRmessaging.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="version.rc2">
+      <Filter>Resources</Filter>
+    </None>
+  </ItemGroup>
+</Project>

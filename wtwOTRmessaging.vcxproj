@@ -1,0 +1,420 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C9E9EB99-BB3C-4E2D-A041-9844527F22A2}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>wtwOTRmessaging</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>wtwOTRmessaging</TargetName>
+    <TargetExt>.plug</TargetExt>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>wtwOTRmessaging</TargetName>
+    <TargetExt>.plug</TargetExt>
+    <IncludePath>$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;POLISH;HAVE_CONFIG_H;__i386__;snprintf=_snprintf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>f:\WTW_PROJECT\wtwOTRmessaging\PostCompile_wtwOTRmessaging.bat</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;POLISH;HAVE_CONFIG_H;__x86_64__;snprintf=_snprintf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <OmitFramePointers>false</OmitFramePointers>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>c:\Data\wtwOTRmessaging\PostCompile_wtwOTRmessaging_x64.bat</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\WTW_PROJECT\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;F:\WTW_PROJECT\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\gpg-w32-dev-20100713\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\WTW_PROJECT\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;F:\WTW_PROJECT\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\gpg-w32-dev-20100713\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+    <Text Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ChatBroker.h" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="OTRL\auth.h" />
+    <ClInclude Include="OTRL\b64.h" />
+    <ClInclude Include="OTRL\context.h" />
+    <ClInclude Include="OTRL\context_priv.h" />
+    <ClInclude Include="OTRL\dh.h" />
+    <ClInclude Include="OTRL\instag.h" />
+    <ClInclude Include="OTRL\mem.h" />
+    <ClInclude Include="OTRL\message.h" />
+    <ClInclude Include="OTRL\privkey-t.h" />
+    <ClInclude Include="OTRL\privkey.h" />
+    <ClInclude Include="OTRL\proto.h" />
+    <ClInclude Include="OTRL\serial.h" />
+    <ClInclude Include="OTRL\sm.h" />
+    <ClInclude Include="OTRL\tlv.h" />
+    <ClInclude Include="OTRL\userstate.h" />
+    <ClInclude Include="OTRL\version.h" />
+    <ClInclude Include="SettingsBroker.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="utils.h" />
+    <ClInclude Include="wtwapi\plInterface.h" />
+    <ClInclude Include="wtwapi\utlIgnore.h" />
+    <ClInclude Include="wtwapi\utlNews.h" />
+    <ClInclude Include="wtwapi\utlWebUtils7.h" />
+    <ClInclude Include="wtwapi\wtwAbout.h" />
+    <ClInclude Include="wtwapi\wtwAccountManager.h" />
+    <ClInclude Include="wtwapi\wtwArchImport.h" />
+    <ClInclude Include="wtwapi\wtwArchive.h" />
+    <ClInclude Include="wtwapi\wtwArchiveOnline.h" />
+    <ClInclude Include="wtwapi\wtwBrowserInterface.h" />
+    <ClInclude Include="wtwapi\wtwCaps.h" />
+    <ClInclude Include="wtwapi\wtwCEL.h" />
+    <ClInclude Include="wtwapi\wtwChatCommandBar.h" />
+    <ClInclude Include="wtwapi\wtwChatHeaderBar.h" />
+    <ClInclude Include="wtwapi\wtwChatPanels.h" />
+    <ClInclude Include="wtwapi\wtwChatWindow.h" />
+    <ClInclude Include="wtwapi\wtwCleanup.h" />
+    <ClInclude Include="wtwapi\wtwCommandLine.h" />
+    <ClInclude Include="wtwapi\wtwConference.h" />
+    <ClInclude Include="wtwapi\wtwContact.h" />
+    <ClInclude Include="wtwapi\wtwContactFavourites.h" />
+    <ClInclude Include="wtwapi\wtwContactList.h" />
+    <ClInclude Include="wtwapi\wtwCrypto.h" />
+    <ClInclude Include="wtwapi\wtwDefaultActions.h" />
+    <ClInclude Include="wtwapi\wtwEvents.h" />
+    <ClInclude Include="wtwapi\wtwExtCtData.h" />
+    <ClInclude Include="wtwapi\wtwFile.h" />
+    <ClInclude Include="wtwapi\wtwFileShareMechs.h" />
+    <ClInclude Include="wtwapi\wtwFileTransferManager.h" />
+    <ClInclude Include="wtwapi\wtwGeoLoc.h" />
+    <ClInclude Include="wtwapi\wtwGraph.h" />
+    <ClInclude Include="wtwapi\wtwGroupOptions.h" />
+    <ClInclude Include="wtwapi\wtwHttpServices.h" />
+    <ClInclude Include="wtwapi\wtwI18N.h" />
+    <ClInclude Include="wtwapi\wtwInputWindows.h" />
+    <ClInclude Include="wtwapi\wtwLog.h" />
+    <ClInclude Include="wtwapi\wtwMenu.h" />
+    <ClInclude Include="wtwapi\wtwMessageHelper.h" />
+    <ClInclude Include="wtwapi\wtwMeta.h" />
+    <ClInclude Include="wtwapi\wtwNetLib.h" />
+    <ClInclude Include="wtwapi\wtwNetSett.h" />
+    <ClInclude Include="wtwapi\wtwOptions.h" />
+    <ClInclude Include="wtwapi\wtwOther.h" />
+    <ClInclude Include="wtwapi\wtwPanels.h" />
+    <ClInclude Include="wtwapi\wtwPlugin.h" />
+    <ClInclude Include="wtwapi\wtwPluginSettings.h" />
+    <ClInclude Include="wtwapi\wtwProcAddr.h" />
+    <ClInclude Include="wtwapi\wtwProperties.h" />
+    <ClInclude Include="wtwapi\wtwProtocol.h" />
+    <ClInclude Include="wtwapi\wtwProtocolExt.h" />
+    <ClInclude Include="wtwapi\wtwScriptInterface.h" />
+    <ClInclude Include="wtwapi\wtwSession.h" />
+    <ClInclude Include="wtwapi\wtwSettings.h" />
+    <ClInclude Include="wtwapi\wtwSMS.h" />
+    <ClInclude Include="wtwapi\wtwStandardImpl.h" />
+    <ClInclude Include="wtwapi\wtwStatusWnd.h" />
+    <ClInclude Include="wtwapi\wtwTask.h" />
+    <ClInclude Include="wtwapi\wtwThreadSwitch.h" />
+    <ClInclude Include="wtwapi\wtwTimer.h" />
+    <ClInclude Include="wtwapi\wtwToolTips.h" />
+    <ClInclude Include="wtwapi\wtwTray.h" />
+    <ClInclude Include="wtwapi\wtwTrayNotify.h" />
+    <ClInclude Include="wtwapi\wtwUPnP.h" />
+    <ClInclude Include="wtwapi\wtwUriHandlers.h" />
+    <ClInclude Include="wtwapi\wtwVCard.h" />
+    <ClInclude Include="wtwapi\wtwWebAuthWindow.h" />
+    <ClInclude Include="wtwapi\wtwWebInfo.h" />
+    <ClInclude Include="wtwapi\wtwWindowMessageFilter.h" />
+    <ClInclude Include="wtwapi\wtwWinInet.h" />
+    <ClInclude Include="wtwapi\wtwWizard.h" />
+    <ClInclude Include="wtwapi\wtwXMPP.h" />
+    <ClInclude Include="wtwOTRmessaging.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ChatBroker.cpp" />
+    <ClCompile Include="libgcrypt\blad3master_gettimeofday.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\arcfour.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\blowfish.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\camellia-glue.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\camellia.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cast5.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-aeswrap.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-cbc.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-ccm.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-cfb.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-cmac.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-ctr.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-gcm.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-ofb.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher-selftest.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\cipher.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\crc.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\des.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\dsa-common.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\dsa.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-curves.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-ecdsa.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-eddsa.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-gost.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc-misc.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\ecc.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\elgamal.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\gost28147.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\gostr3411-94.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\hash-common.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\hmac-tests.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\idea.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\kdf.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac-cmac.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac-gmac.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac-hmac.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\mac.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\md.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\md4.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\md5.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\primegen.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\pubkey-util.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\pubkey.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rfc2268.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rijndael.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rmd160.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rsa-common.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\rsa.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\salsa20.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\scrypt.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\seed.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\serpent.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\sha1.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\sha256.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\sha512.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\stribog.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\tiger.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\twofish.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\cipher\whirlpool.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\compat\compat.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\ec-ed25519.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\ec.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-add1.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-lshift.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-mul1.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-mul2.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-mul3.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-rshift.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\generic\mpih-sub1.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-add.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-bit.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-cmp.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-div.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-gcd.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-inline.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-inv.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-mod.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-mpow.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-mul.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-pow.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpi-scan.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpicoder.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpih-div.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpih-mul.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\mpi\mpiutil.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\random\random-csprng.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\random\random-fips.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\random\random-system.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\random\random.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\random\rndhw.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\random\rndw32.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\ath.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\context_libgcrypt.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\fips.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\global.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\hmac256.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\hwf-x86.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\hwfeatures.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\misc.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\missing-string.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\secmem.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\sexp.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\stdmem.c" />
+    <ClCompile Include="libgcrypt\libgcrypt\src\visibility.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\code-from-errno.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\code-to-errno.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\estream-printf.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\estream.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\gpg-error_visibility.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\init.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\posix-lock.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\posix-thread.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\strerror.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\strsource.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\version.c" />
+    <ClCompile Include="libgcrypt\libgpg-error\src\w32-gettext.c" />
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="OTRL\auth.c" />
+    <ClCompile Include="OTRL\b64.c" />
+    <ClCompile Include="OTRL\context.c" />
+    <ClCompile Include="OTRL\context_priv.c" />
+    <ClCompile Include="OTRL\dh.c" />
+    <ClCompile Include="OTRL\instag.c" />
+    <ClCompile Include="OTRL\mem.c" />
+    <ClCompile Include="OTRL\message.c" />
+    <ClCompile Include="OTRL\privkey.c" />
+    <ClCompile Include="OTRL\proto.c" />
+    <ClCompile Include="OTRL\sm.c" />
+    <ClCompile Include="OTRL\tlv.c" />
+    <ClCompile Include="OTRL\userstate.c" />
+    <ClCompile Include="SettingsBroker.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="utils.cpp" />
+    <ClCompile Include="wtwOTRmessaging.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wtwOTRmessaging.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="version.rc2" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="wtwOTRmessaging.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
