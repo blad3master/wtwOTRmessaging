@@ -142,6 +142,7 @@ private:
 	// WTW hooks
 	HANDLE onBeforeMsgDisp2_hook;
 	HANDLE onProtocolEvent_hook;
+	HANDLE onChatwndBeforeMsgProc_hook;
 
 
 	bool otrl_timer_set = false;
@@ -170,6 +171,9 @@ private:
 
 	// WTW callback
 	static WTW_PTR onBeforeMsgDisp2_cb(WTW_PARAM, WTW_PARAM, void*);
+
+	// WTW callback
+	static WTW_PTR onChatwndBeforeMsgProc_cb(WTW_PARAM, WTW_PARAM, void*);
 
 	/******************/
 	/* OTRL CALLBACKS */
@@ -409,7 +413,7 @@ private:
 
 	static int sendRawMessageToNetwork(const char* msg);
 
-	void displayMsgInChat(const wchar_t *peer, const wchar_t *msg, bool fontBold = true, bool tooltip = true);
+	void displayMsgInChat(const wchar_t *peer, const wchar_t *netClass, const wchar_t *msg, bool fontBold = true, bool tooltip = true);
 
 };
 

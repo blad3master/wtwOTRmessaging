@@ -122,7 +122,8 @@ WTW_PTR ChatBroker::moj_callback(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 	case 2:
 		StringCbPrintfW(s, sizeof(s), L"Próba odœwie¿enia prywatnej rozmowy z u¿ytkownikiem '%s'",
 			p_callback->contactInfo->id);
-		wtwOTRmessaging::instance->displayMsgInChat(p_callback->contactInfo->id, s);
+		wtwOTRmessaging::instance->displayMsgInChat(p_callback->contactInfo->id,
+			p_callback->contactInfo->netClass, s);
 	case 1:
 		initializePrivateConversation(p_callback->contactInfo);
 		break;
@@ -351,13 +352,18 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 
 	ConnContext *context = otrl_context_find(wtwOTRmessaging::instance->itsOtrlUserState,
 							utf16Toutf8(peer->id), SettingsBroker::settingsBrokerInstance->getOtrlAccountName(),
-							utf16Toutf8(SettingsBroker::settingsBrokerInstance->getProtocolNetClass()),
+							utf16Toutf8(peer->netClass),
 							OTRL_INSTAG_BEST, 0, nullptr, nullptr,	nullptr );
+
+	if (nullptr == context || nullptr == context->active_fingerprint || nullptr == context->active_fingerprint->fingerprint)
+	{
+		LOG_CRITICAL(L"%s context ptr or its field is nullptr", __FUNCTIONW__);
+		return;
+	}
 
 	char my_fp[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
 	otrl_privkey_fingerprint(wtwOTRmessaging::instance->itsOtrlUserState, my_fp,
-		SettingsBroker::settingsBrokerInstance->getOtrlAccountName(),
-		utf16Toutf8(SettingsBroker::settingsBrokerInstance->getProtocolNetClass()));
+		SettingsBroker::settingsBrokerInstance->getOtrlAccountName(), utf16Toutf8(peer->netClass));
 
 	char peer_fp[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
 	otrl_privkey_hash_to_human(peer_fp, context->active_fingerprint->fingerprint);
@@ -379,7 +385,8 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 				if (otrl_context_is_fingerprint_trusted(context->active_fingerprint)) {
 					changed = true;
 					otrl_context_set_trust(context->active_fingerprint, nullptr);
-					wtwOTRmessaging::instance->displayMsgInChat(peer->id, L"Status aktualnej rozmowy: "
+					wtwOTRmessaging::instance->displayMsgInChat(peer->id, peer->netClass,
+						L"Status aktualnej rozmowy: "
 						L"<a href=\"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl\">Niezweryfikowana</a>");
 				}
 			}
@@ -387,7 +394,8 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 				if (! otrl_context_is_fingerprint_trusted(context->active_fingerprint)) {
 					changed = true;
 					otrl_context_set_trust(context->active_fingerprint, "trusted");
-					wtwOTRmessaging::instance->displayMsgInChat(peer->id, L"Status aktualnej rozmowy: "
+					wtwOTRmessaging::instance->displayMsgInChat(peer->id, peer->netClass,
+						L"Status aktualnej rozmowy: "
 						L"<a href=\"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl\">Prywatna</a>");
 				}
 			}

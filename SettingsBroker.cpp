@@ -158,6 +158,8 @@ const wchar_t * SettingsBroker::getFigerprintFileFullPath() const
 }
 
 
+// TODO: SettingsBroker::getProtocolNetClass() is buggy since the protocol is not always XMPP!!!
+// REMOVE IT
 const wchar_t * SettingsBroker::getProtocolNetClass() const
 {
 	if (SETTING_TYPE_WC_STRING == settingsMap[SETTING_KEY_PROTOCOL_NET_CLASS].type) {
@@ -168,6 +170,7 @@ const wchar_t * SettingsBroker::getProtocolNetClass() const
 	LOG_CRITICAL(L"%s() - invalid setting type", utf8Toutf16(__FUNCTION__));
 	return L"";
 }
+
 
 /*
 inline void SettingsBroker::setOTRLaccountName(const char *accountName) {
