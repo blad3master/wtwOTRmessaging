@@ -40,8 +40,9 @@ WTW_PLUGIN_API_ENTRY(int) pluginUnload(DWORD /*callReason*/);
 struct MY_wtwMessageDef_STRUCT
 {
 private:
+	static const int _instace_number = 16;
 	static int _instance_index;
-	static MY_wtwMessageDef_STRUCT _instances[16];
+	static MY_wtwMessageDef_STRUCT _instances[_instace_number];
 
 	// do not let create instances - 
 	MY_wtwMessageDef_STRUCT() {};
@@ -63,7 +64,10 @@ public:
 	unsigned int onBeforeMsgDisp2_replace_key = 0;
 
 	static MY_wtwMessageDef_STRUCT *getInstance() {
-		return &_instances[++_instance_index];
+		if (++_instance_index >= _instace_number)
+			_instance_index = 0;
+		memset(&_instances[_instance_index], 0, sizeof(_instances[0]));
+		return &_instances[_instance_index];
 	}
 };
 
@@ -71,16 +75,28 @@ public:
 // The struct keeps some data that help to process the OTRL events
 struct MY_ConnContext_STRUCT
 {
-	MY_ConnContext_STRUCT(const MY_wtwMessageDef_STRUCT &) = delete;
-	MY_ConnContext_STRUCT(const MY_wtwMessageDef_STRUCT &&) = delete;
-	MY_ConnContext_STRUCT &operator =(const MY_wtwMessageDef_STRUCT &) = delete;
-	MY_ConnContext_STRUCT &operator =(const MY_wtwMessageDef_STRUCT &&) = delete;
+	static const int _instace_number = 16;
+	static int _instance_index;
+	static MY_ConnContext_STRUCT _instances[_instace_number];
+
+	MY_ConnContext_STRUCT(const MY_ConnContext_STRUCT &) = delete;
+	MY_ConnContext_STRUCT(const MY_ConnContext_STRUCT &&) = delete;
+	MY_ConnContext_STRUCT &operator =(const MY_ConnContext_STRUCT &) = delete;
+	MY_ConnContext_STRUCT &operator =(const MY_ConnContext_STRUCT &&) = delete;
 
 public:
+	wchar_t peer[255];
+	wchar_t netClass[255];
+	int netId;
+
 	MY_ConnContext_STRUCT() {}
 
-	static MY_ConnContext_STRUCT *getInstance() { return new MY_ConnContext_STRUCT(); }
-	static void deleteInstance(void *ptr) { delete static_cast<MY_ConnContext_STRUCT*>(ptr); }
+	static MY_ConnContext_STRUCT *getInstance() {
+		if (++_instance_index >= _instace_number)
+			_instance_index = 0;
+		memset(&_instances[_instance_index], 0, sizeof(_instances[0]));
+		return &_instances[_instance_index];
+	}
 };
 
 
@@ -125,6 +141,8 @@ private:
 	/*************/
 	/* VARIABLES */
 	/*************/
+
+	Logger logger;
 
 	ChatBroker itsChatBroker;
 
@@ -413,7 +431,12 @@ private:
 
 	static int sendRawMessageToNetwork(const char* msg);
 
-	void displayMsgInChat(const wchar_t *peer, const wchar_t *netClass, const wchar_t *msg, bool fontBold = true, bool tooltip = true);
+	void displayMsgInChat(const wchar_t *peer, const wchar_t *netClass, int netId,
+		const wchar_t *msg, bool fontBold = true, bool tooltip = true);
+
+	// this calls above displayMsgInChat()
+	void displayMsgInChat(const MY_ConnContext_STRUCT* wtwContact,
+		const wchar_t *msg, bool fontBold = true, bool tooltip = true);
 
 };
 

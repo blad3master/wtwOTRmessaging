@@ -22,7 +22,10 @@ extern "C" {
 //#pragma comment(lib, "user32.lib")
 
 int MY_wtwMessageDef_STRUCT::_instance_index = 0;
-MY_wtwMessageDef_STRUCT MY_wtwMessageDef_STRUCT::_instances[16];
+MY_wtwMessageDef_STRUCT MY_wtwMessageDef_STRUCT::_instances[MY_wtwMessageDef_STRUCT::_instace_number];
+
+int MY_ConnContext_STRUCT::_instance_index = 0;
+MY_ConnContext_STRUCT MY_ConnContext_STRUCT::_instances[MY_ConnContext_STRUCT::_instace_number];
 
 static wtwOTRmessaging * p_wtwOTRmessaging = nullptr;
 
@@ -145,7 +148,19 @@ OtrlPolicy wtwOTRmessaging::OTRL_policy_cb(void *opdata, ConnContext *context)
 	//TODO: return policy set in gui(settings) and return it instead
 	// of default value
 
-	OtrlPolicy policy = OTRL_POLICY_MANUAL;
+	OtrlPolicy policy = OTRL_POLICY_DEFAULT;
+
+	switch (instance->getSettingsBroker().getOtrlPolicy())
+	{
+	case SettingsBroker::OTRL_POLICY::NEVER:			policy = OTRL_POLICY_NEVER;			break;
+	case SettingsBroker::OTRL_POLICY::MANUAL:			policy = OTRL_POLICY_MANUAL;		break;
+	case SettingsBroker::OTRL_POLICY::OPPORTUNISTIC:	policy = OTRL_POLICY_OPPORTUNISTIC;	break;
+	case SettingsBroker::OTRL_POLICY::ALWAYS:			policy = OTRL_POLICY_ALWAYS;		break;
+	default: LOG_CRITICAL(L"%s() wrong policy", __FUNCTIONW__);
+	}
+
+	LOG_TRACE(L"%s() selected policy %d, final policy %d", __FUNCTIONW__,
+		instance->getSettingsBroker().getOtrlPolicy(), policy);
 
 	return policy;
 }
@@ -262,7 +277,7 @@ void wtwOTRmessaging::OTRL_new_fingerprint_cb(void *opdata, OtrlUserState us,
 		utf8Toutf16(accountname), utf8Toutf16(protocol),
 		utf8Toutf16(username), utf8Toutf16(fp_string));
 
-	instance->displayMsgInChat(utf8Toutf16(username), utf8Toutf16(protocol), s);
+	instance->displayMsgInChat(reinterpret_cast<MY_ConnContext_STRUCT*>(opdata), s);
 
 	// update settings key list
 	instance->itsSettingsBroker.ui_update_keylist();
@@ -325,7 +340,7 @@ void wtwOTRmessaging::OTRL_gone_secure_cb(void *opdata,	ConnContext *context)
 	StringCbPrintfW(s, sizeof(s), L"Rozpoczêto prywatn¹ rozmowê z u¿ytkownikiem '%s'",
 		utf8Toutf16(context->username));
 
-	instance->displayMsgInChat(utf8Toutf16(context->username), utf8Toutf16(context->protocol), s);
+	instance->displayMsgInChat(reinterpret_cast<MY_ConnContext_STRUCT*>(opdata), s);
 
 	ChatBroker::update_ui();
 
@@ -411,16 +426,20 @@ void wtwOTRmessaging::OTRL_still_secure_cb(void *opdata, ConnContext *context, i
 	wchar_t s[500];
 	StringCbPrintfW(s, sizeof(s), L"Pomyœlnie odœwie¿ono prywatn¹ rozmowê z u¿ytkownikiem '%s'",
 		utf8Toutf16(context->username));
-	wtwOTRmessaging::instance->displayMsgInChat(utf8Toutf16(context->username),
-											utf8Toutf16(context->protocol), s);
+	wtwOTRmessaging::instance->displayMsgInChat(reinterpret_cast<MY_ConnContext_STRUCT*>(opdata), s);
 }
 
 
 int wtwOTRmessaging::OTRL_max_message_size_cb(void *opdata, ConnContext *context) {
 	//LOG_WARN(L"%s() not implemented - returns hardcoded value", utf8Toutf16(__FUNCTION__));
+
+
+	/* GG: http://libgadu.net/protocol/#ch1.6
+	 * D³ugoœæ treœci wiadomoœci nie powinna przekraczaæ 2000 znaków. 
+	 */
 	
 	// TODO: create an array of known protocols->MaxMessageSize mappings
-	return 500;
+	return 1000;
 }
 
 
@@ -479,7 +498,7 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 		StringCbPrintfW(msg, sizeof(msg),
 			L"Próbowa³eœ wys³aæ niezaszyfrowan¹ wiadomoœæ do '%s'",
 			peer_name);		
-		instance->displayMsgInChat(peer_name, utf8Toutf16(context->protocol), msg);
+		instance->displayMsgInChat(reinterpret_cast<MY_ConnContext_STRUCT*>(opdata), msg);
 
 		/*display_otr_message_or_notify(opdata, context->accountname,
 			context->protocol, context->username, _("Attempting to"
@@ -499,7 +518,7 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 			L"Wiadomoœæ do u¿ytkownika '%s' NIE zosta³a wys³ana. "
 			L"Zakoñcz prywatn¹ rozmowê lub ponowniê j¹ rozpocznij.",
 			peer_name);
-		instance->displayMsgInChat(peer_name, utf8Toutf16(context->protocol), msg);
+		instance->displayMsgInChat(reinterpret_cast<MY_ConnContext_STRUCT*>(opdata), msg);
 		
 		ChatBroker::update_ui();
 		break;
@@ -534,7 +553,7 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 		StringCbPrintfW(msg, sizeof(msg),
 			L"<b>The following message received from '%s' was <i>not</i> encrypted: [</b>%s<b>]</b>",
 			peer_name, utf8Toutf16(message));
-		instance->displayMsgInChat(peer_name, msg, false);
+		instance->displayMsgInChat(reinterpret_cast<MY_ConnContext_STRUCT*>(opdata), msg, false);
 		break;
 //	case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
 //		break;
@@ -837,7 +856,7 @@ void wtwOTRmessaging::stop_start_timer(unsigned int interval)
 #if USE_WINAPI_TIMERS
 VOID CALLBACK wtwOTRmessaging::otrl_timer_callback(_In_  HWND hwnd, _In_  UINT uMsg, _In_  UINT_PTR idEvent, _In_  DWORD dwTime)
 {
-	otrl_message_poll(instance->getOtrlUserState(), &instance->itsOTRLops, 0);
+	otrl_message_poll(instance->getOtrlUserState(), &instance->itsOTRLops, nullptr);
 }
 #else
 WTW_PTR	wtwOTRmessaging::otrl_timer_callback(WTW_PARAM wParam, WTW_PARAM lParam, void* opdata)
@@ -885,8 +904,13 @@ WTW_PTR wtwOTRmessaging::onBeforeMsgDisp2_cb(WTW_PARAM wParam, WTW_PARAM lParam,
 {
 	wtwBmd2Struct *pBmd = (wtwBmd2Struct*)wParam;
 
+	if (nullptr == pBmd) {
+		LOG_CRITICAL(L"%s() pBmd = nullptr", __FUNCTIONW__);
+		return -1;
+	}
+
 	if (pBmd->bmdResult & BMD_FORCE_NO_DISP) {
-		LOG_ERROR(L"onBeforeMsgDisp2_cb - BMD_FORCE_NO_DISP!");
+		LOG_ERROR(L"%s() - BMD_FORCE_NO_DISP!", __FUNCTIONW__);
 		MessageBox(NULL, L"onBeforeMsgDisp2_cb - BMD_FORCE_NO_DISP!", L"wtwOTRmessaging", MB_OK);
 		return -1;
 	}
@@ -894,7 +918,12 @@ WTW_PTR wtwOTRmessaging::onBeforeMsgDisp2_cb(WTW_PARAM wParam, WTW_PARAM lParam,
 	wtwMessageDef *pMsg = pBmd->pMsg;
 
 	if (!pMsg || !pMsg->msgMessage || !pMsg->contactData.id) {
-		LOG_ERROR(L"onBeforeMsgDisp2_cb - invalid msg ptr!");
+		if (!pMsg)
+			LOG_ERROR(L"%s() - pMsg is nullptr!", __FUNCTIONW__);
+		else if (!pMsg->msgMessage)
+			LOG_ERROR(L"%s() - pMsg->msgMessage is nullptr!", __FUNCTIONW__);
+		else if (!pMsg->contactData.id)
+			LOG_ERROR(L"%s() - !pMsg->contactData.id is nullptr!", __FUNCTIONW__);
 		MessageBox(NULL, L"onBeforeMsgDisp2_cb - invalid msg ptr!", L"wtwOTRmessaging", MB_OK);
 		return -1;
 	}
@@ -922,7 +951,7 @@ WTW_PTR wtwOTRmessaging::onBeforeMsgDisp2_cb(WTW_PARAM wParam, WTW_PARAM lParam,
 			instance->encryptedToDecryptedMsgs.erase(key);
 		}
 		else {
-			LOG_ERROR(L"%s() BEFORE DISPLAY: key '%u' not found in map", key, utf8Toutf16(__FUNCTION__));
+			LOG_CRITICAL(L"%s() BEFORE DISPLAY: key '%u' not found in map", key, utf8Toutf16(__FUNCTION__));
 		}
 	}
 
@@ -983,6 +1012,11 @@ WTW_PTR wtwOTRmessaging::onProtocolEvent_cb(WTW_PARAM wParam, WTW_PARAM lParam, 
 				LOG_DEBUG(L"%s\n\n", buffer);
 			}
 
+			MY_ConnContext_STRUCT * context = MY_ConnContext_STRUCT::getInstance();
+			wcscpy_s(context->peer, sizeof(context->peer), pMessageDef->contactData.id);
+			wcscpy_s(context->netClass, sizeof(context->netClass), pMessageDef->contactData.netClass);
+			context->netId = pMessageDef->contactData.netId;
+
 			my_struct = (my_struct) ? my_struct : MY_wtwMessageDef_STRUCT::getInstance();
 			my_struct->msg_encrypt = true;
 			my_struct->old_pointer_const = pMessageDef->msgMessage;	// Keep original msg since it must be restored in AFTER event
@@ -992,7 +1026,7 @@ WTW_PTR wtwOTRmessaging::onProtocolEvent_cb(WTW_PARAM wParam, WTW_PARAM lParam, 
 			char *newmessage = NULL;
 			gcry_error_t err = otrl_message_sending(instance->getOtrlUserState(),
 				&instance->itsOTRLops,
-				NULL, //opdata
+				context, //opdata
 				instance->itsSettingsBroker.getOtrlAccountName(), //accountname
 				utf16Toutf8(pMessageDef->contactData.netClass), //protocol
 				utf16Toutf8(pMessageDef->contactData.id), //username
@@ -1018,7 +1052,7 @@ WTW_PTR wtwOTRmessaging::onProtocolEvent_cb(WTW_PARAM wParam, WTW_PARAM lParam, 
 				
 				LOG_ERROR(L"Error occured while trying to cipher the message");
 				instance->displayMsgInChat(pMessageDef->contactData.id,
-					pMessageDef->contactData.netClass,
+					pMessageDef->contactData.netClass, pMessageDef->contactData.netId,
 					L"Failed to cipher your message - it has NOT been sent!");
 
 				// Do not send out plain text
@@ -1194,7 +1228,12 @@ int wtwOTRmessaging::processReceivedMessage(wtwMessageDef *pWtwMessage)
 	//Logger::debug(L"processReceivedMessage(): ");
 	//Logger::debug(pWtwMessage->msgMessage);
 
-	ignoreMsg = otrl_message_receiving(itsOtrlUserState, &itsOTRLops, NULL,
+	MY_ConnContext_STRUCT * context = MY_ConnContext_STRUCT::getInstance();
+	wcscpy_s(context->peer, sizeof(context->peer), pWtwMessage->contactData.id);
+	wcscpy_s(context->netClass, sizeof(context->netClass), pWtwMessage->contactData.netClass);
+	context->netId = pWtwMessage->contactData.netId;
+
+	ignoreMsg = otrl_message_receiving(itsOtrlUserState, &itsOTRLops, context,
 		itsSettingsBroker.getOtrlAccountName(), utf16Toutf8(pWtwMessage->contactData.netClass),
 		utf16Toutf8(pWtwMessage->contactData.id), utf16Toutf8(pWtwMessage->msgMessage), &newMsg,
 		&tlvs, NULL, NULL, NULL);
@@ -1206,7 +1245,8 @@ int wtwOTRmessaging::processReceivedMessage(wtwMessageDef *pWtwMessage)
 		if (tlv) {
 			/* Notify the user that the other side disconnected. */
 			StringCbPrintfW(msg, sizeof(msg), L"Prywatna rozmowa z u¿ytkownikiem '%s' zosta³a zakoñczona", pWtwMessage->contactData.id);
-			instance->displayMsgInChat(pWtwMessage->contactData.id, pWtwMessage->contactData.netClass, msg);
+			instance->displayMsgInChat(pWtwMessage->contactData.id, pWtwMessage->contactData.netClass,
+				pWtwMessage->contactData.netId, msg);
 
 			ChatBroker::update_ui();
 		}
@@ -1419,7 +1459,7 @@ int wtwOTRmessaging::otrg_finish_private_conversation(wtwContactDef *contact)
 
 	wchar_t s[500];
 	StringCbPrintfW(s, sizeof(s), L"Zakoñczono prywatn¹ rozmowê z u¿ytkownikiem '%s'", contact->id);
-	instance->displayMsgInChat(contact->id, contact->netClass, s);
+	instance->displayMsgInChat(contact->id, contact->netClass, contact->netId, s);
 
 	return 0;
 }
@@ -1427,7 +1467,7 @@ int wtwOTRmessaging::otrg_finish_private_conversation(wtwContactDef *contact)
 
 
 
-void wtwOTRmessaging::displayMsgInChat(const wchar_t *peer, const wchar_t *netClass,
+void wtwOTRmessaging::displayMsgInChat(const wchar_t *peer, const wchar_t *netClass, int netId,
 	const wchar_t *msg, bool fontBold, bool tooltip)
 {
 	const int max_len = 2048;
@@ -1455,7 +1495,7 @@ void wtwOTRmessaging::displayMsgInChat(const wchar_t *peer, const wchar_t *netCl
 		initStruct(md);
 		md.contactData.id = peer;
 		md.contactData.netClass = netClass;
-		md.contactData.netId = itsSettingsBroker.getProtocolNetId();
+		md.contactData.netId = netId;
 		md.msgMessage = decorated;
 		md.msgTime = time(NULL);
 		md.msgFlags = WTW_MESSAGE_FLAG_INCOMING | WTW_MESSAGE_FLAG_CHAT_MSG | WTW_MESSAGE_FLAG_NOHTMLESC
@@ -1464,3 +1504,15 @@ void wtwOTRmessaging::displayMsgInChat(const wchar_t *peer, const wchar_t *netCl
 	}
 }
 
+void wtwOTRmessaging::displayMsgInChat(const MY_ConnContext_STRUCT* wtwContact,
+	const wchar_t *msg, bool fontBold, bool tooltip)
+{
+	if (nullptr != wtwContact)
+	{
+		displayMsgInChat(wtwContact->peer, wtwContact->netClass, wtwContact->netId, msg, fontBold, tooltip);
+	}
+	else
+	{
+		LOG_CRITICAL(L"%s() wtwContact is nullptr (msg: %s)", __FUNCTIONW__, msg);
+	}
+}

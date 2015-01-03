@@ -10,11 +10,13 @@ extern "C" {
 #include "OTRL/privkey.h"
 }
 
+
 static const wchar_t * WTWOTR_OPTIONS_PAGE_ID = L"wtwOTRmessagingOptions";
-const wchar_t * const SettingsBroker::SETTINGS_FILE_NAME = L"wtwOTRmessaging.dat";
+const wchar_t * const SettingsBroker::SETTINGS_FILE_NAME = L"wtwOTRmessaging.ini";
+const wchar_t * const SettingsBroker::PRIV_KEY_FILE_NAME = L"key.secret";
 const wchar_t * const SettingsBroker::INSTAG_FILE_NAME = L"instag.dat";
 const wchar_t * const SettingsBroker::FINGERPRINT_FILE_NAME = L"fingerprint.dat";
-const wchar_t * SettingsBroker::SettingsWindowClassName = L"SettingsClass";
+const wchar_t * const SettingsBroker::SettingsWindowClassName = L"SettingsClass";
 
 const wchar_t * const SettingsBroker::SETTINGS_WTW_NAMES[SETTING_KEY_NUMBER_OF_KEYS] = {
 	L"data_dir",				// SETTING_KEY_DATA_DIR
@@ -22,6 +24,11 @@ const wchar_t * const SettingsBroker::SETTINGS_WTW_NAMES[SETTING_KEY_NUMBER_OF_K
 	L"priv_key_file_path",		// SETTING_KEY_PRIV_KEY_FILE_PATH
 	L"instag_file_path",		// SETTING_KEY_INSTAG_FILE_PATH
 	L"fingerprint_file_path",	// SETTING_KEY_FINGERPRINT_FILE_PATH
+//	L"protocol_net_class",		// SETTING_KEY_PROTOCOL_NET_CLASS
+//	L"protocol_net_id",         // SETTING_KEY_PROTOCOL_NET_ID
+//	L"OTRL_account_name",       // SETTING_KEY_OTRL_ACCOUNT_NAME
+	L"OTRL_policy",				// SETTING_KEY_OTRL_POLICY
+	L"log_to_file",             // SETTING_KEY_LOG_TO_FILE
 };
 
 SettingsBroker * SettingsBroker::settingsBrokerInstance = 0;
@@ -42,15 +49,14 @@ POINT SettingsBroker::ui_settingsWnd_scroll = { 0, 0 };
 
 
 SettingsBroker::SettingsBroker(wtwOTRmessaging *_wtwOTRm) :
-	itsWtwOTRmessaging(_wtwOTRm),
-	pSettingsInterface(0)
+	itsWtwOTRmessaging(_wtwOTRm)
+//	,pSettingsInterface(0)
 {
-	memset(settingsMap, 0, sizeof(settingsMap));
+	initializeSettingsValues();
 	setSettingsBrokerInstancePointer();
 	makeSettingsFilesPaths();
 	addSettingsPage();
 	registerWndClass();
-	initializeSettingsValues();
 
 	// If settings directory does not exists, create it
 	DWORD dwAttrib = GetFileAttributes( getSettingsDataDir() );
@@ -85,7 +91,19 @@ SettingsBroker::SettingsBroker(wtwOTRmessaging *_wtwOTRm) :
 	//       if file is empty or corrupted, then onActionReload() is not executed and values are not set
 	//       for later use!
 
-	createSettingsIterface();
+//	createSettingsIterface();
+
+	// must load settings before we start using it
+	loadSettingsFromFile();
+
+	// Turn on logging to file
+	bool logToFile;
+	if( (true == getSettingValueHelper(SETTING_KEY_LOG_TO_FILE, SETTING_TYPE_BOOL, &logToFile)) &&
+		(true == logToFile) )
+	{
+		Logger::getInstance()->startLoggingToFile();
+	}
+
 	return;
 
 _SettingsBroker_end:
@@ -94,7 +112,7 @@ _SettingsBroker_end:
 
 SettingsBroker::~SettingsBroker(void)
 {
-	destroySettingsInterface();
+	//destroySettingsInterface();
 	removeSettingsPage();
 	unsetSettingsBrokerInstancePointer();
 }
@@ -160,6 +178,7 @@ const wchar_t * SettingsBroker::getFigerprintFileFullPath() const
 
 // TODO: SettingsBroker::getProtocolNetClass() is buggy since the protocol is not always XMPP!!!
 // REMOVE IT
+/*
 const wchar_t * SettingsBroker::getProtocolNetClass() const
 {
 	if (SETTING_TYPE_WC_STRING == settingsMap[SETTING_KEY_PROTOCOL_NET_CLASS].type) {
@@ -170,6 +189,7 @@ const wchar_t * SettingsBroker::getProtocolNetClass() const
 	LOG_CRITICAL(L"%s() - invalid setting type", utf8Toutf16(__FUNCTION__));
 	return L"";
 }
+*/
 
 
 /*
@@ -185,6 +205,7 @@ inline void SettingsBroker::setOTRLaccountName(const char *accountName) {
 }*/
 
 
+/*
 int SettingsBroker::getProtocolNetId() const
 {
 	if (SETTING_TYPE_INT == settingsMap[SETTING_KEY_PROTOCOL_NET_ID].type) {
@@ -195,6 +216,8 @@ int SettingsBroker::getProtocolNetId() const
 	LOG_CRITICAL(L"%s() - invalid setting type", utf8Toutf16(__FUNCTION__));
 	return -1;
 }
+*/
+
 
 /*
 inline void SettingsBroker::setOTRLprotocol(const char *protocol) {
@@ -212,6 +235,10 @@ inline void SettingsBroker::setOTRLprotocol(const char *protocol) {
 
 const char * SettingsBroker::getOtrlAccountName() const
 {
+	static char account_name[] = "account_name";
+
+	return account_name;
+/*
 	if (SETTING_TYPE_C_STRING == settingsMap[SETTING_KEY_OTRL_ACCOUNT_NAME].type) {
 		//LOG_DEBUG(L"getProtocolNetClass(): %s",cToWideCharString(settingsMap[SETTING_KEY_OTRL_ACCOUNT_NAME].value_c_string));
 		return settingsMap[SETTING_KEY_OTRL_ACCOUNT_NAME].value_c_string;
@@ -219,6 +246,20 @@ const char * SettingsBroker::getOtrlAccountName() const
 
 	LOG_CRITICAL(L"%s() - invalid setting type", utf8Toutf16(__FUNCTION__));
 	return "";
+*/
+}
+
+
+SettingsBroker::OTRL_POLICY SettingsBroker::getOtrlPolicy() const
+{
+	OTRL_POLICY policy = OTRL_POLICY::OPPORTUNISTIC;
+	unsigned int x;
+	if (getSettingValueHelper(SETTING_KEY_OTRL_POLICY, SETTING_TYPE_UINT, &x))
+	{
+		policy = (OTRL_POLICY)(x);
+	}
+	LOG_TRACE(L"%s() x: %u  policy: %u", __FUNCTIONW__, x, policy);
+	return policy;
 }
 
 
@@ -242,15 +283,15 @@ LRESULT CALLBACK SettingsBroker::settings_class_callback(HWND hwnd,	UINT msg, WP
 	case WM_COMMAND:
 		switch (wParam)
 		{
-		case 1:
+		case UI_SETTING_HMENU_1:
 			MessageBox( nullptr, L"Wcisn¹³eœ przycisk 1",L"", MB_ICONINFORMATION );
 			//settingsBrokerInstance->onGeneratePrivateKey();
 			break;
-		case 2:
+		case UI_SETTING_HMENU_VERIFY_KEY:
 			//LOG_DEBUG(L"hot item index = %d", ListView_GetNextItem(settingsBrokerInstance->ui_keyList, -1, LVNI_SELECTED));
 			// TODO: verify key again
 			break;
-		case 3:
+		case UI_SETTING_HMENU_FORGET_KEY:
 			// Forget the key
 			ui_forget_fingerprint();
 			break;
@@ -474,9 +515,10 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 	CString description = L"Wtyczka pozwala uwierzytelniæ naszego rozmówcê i szyfrowaæ wymieniane wiadomoœci.";
 	CString settings_group_name = L"Ustawienia ogólne";
 	CString settings_file = L"Plik ustawieñ:";
-	CString cb_start_priv = L" Próbuj nawi¹zaæ prywatne po³¹czenie automatycznie";
+	CString otrl_policy_text = L"Polityka szyfrowania";
 	CString cb_force_enc = L" Wymuœ szyfrowanie";
 	CString cb_do_archive = L" Zapisuj wiadomoœci do archiwum";
+	CString cb_log_to_file = L" Zapisuj logi do pliku";
 	CString priv_key = L"Twój klucz prywatny";
 	CString priv_key_hash = L"Odcisk klucza: %s";
 	CString priv_key_file = L"Plik z kluczem:";
@@ -487,9 +529,10 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 	CString description = L"This plugin provides authentication, encryption, perfect forward secrecy and malleable encryption.";
 	CString settings_group_name = L"General settings";
 	CString settings_file = L"Settings file:";
-	CString cb_start_priv = L" Automatically start private conversations";
+	CString otrl_policy_text = L"Encryption policy";
 	CString cb_force_enc = L" Force encryption";
 	CString cb_do_archive = L" Archive message history";
+	CString cb_log_to_file = L" Save logs to file";
 	CString priv_key = L"Private key";
 	CString priv_key_hash = L"Key fingerprint: %s";
 	CString priv_key_file = L"Key file:";
@@ -501,11 +544,13 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 	wcscpy_s(pInfo->windowDescrip, 512, description);
 	// TODO: prepare big icon and set "icon" or "iconId";
 
-	if (nullptr != ui_settingsWnd) {
+	if (nullptr != ui_settingsWnd)
+	{
 		ShowWindow(ui_settingsWnd, SW_SHOW);
 		UpdateWindow(ui_settingsWnd);
 	}
-	else {
+	else
+	{
 		ui_settingsWnd = CreateWindowEx(0, SettingsWindowClassName, L"wtwOTRmessaging settings",
 			WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL,
 			pInfo->x, pInfo->y, /*pInfo->cx*/ UI_SETTINGS_WIDTH, /*pInfo->cy*/ UI_SETTINGS_HEIGHT,
@@ -516,49 +561,73 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 			return 1;
 		}
 
+		int yPos = 0; // help to position UI elements in Y-axis
 		char *buffer = new char[255];
 		wchar_t *wc_buffer = new wchar_t[255];
 
 		// GroupBox
 		CreateWindow(L"BUTTON", settings_group_name, WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
-			0, 0, 720, 125, ui_settingsWnd, NULL, hInstance, NULL);
+			0, yPos+=0, 720, 130, ui_settingsWnd, NULL, hInstance, NULL);
 
 		HWND labelFile = CreateWindowEx(0, L"STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_LEFT,
-			5, 25, 90, 20, ui_settingsWnd, NULL, hInstance, NULL);
+			5, yPos+=25, 90, 20, ui_settingsWnd, NULL, hInstance, NULL);
 		SetWindowText(labelFile, settings_file);
 
 		// Edit - settings file path
 		ui_settingsFilePath = CreateWindowEx(0, L"EDIT", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_READONLY,
-			110, 23, 600, 20, ui_settingsWnd, NULL, hInstance, NULL);
+			110, yPos-2, 600, 20, ui_settingsWnd, NULL, hInstance, NULL);
 		SetWindowText(ui_settingsFilePath, getSettingsFileFullPath());
 
-		// Checkbox
-		CreateWindowEx(0, L"BUTTON", cb_start_priv,
-			WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | WS_DISABLED, 8, 50, 550, 20, ui_settingsWnd, NULL, hInstance, NULL);
+		CreateWindowEx(0, L"STATIC", otrl_policy_text, WS_CHILD | WS_VISIBLE | SS_LEFT,
+			5, yPos += 25, 180, 20, ui_settingsWnd, NULL, hInstance, NULL);
+
+		ui_otrl_policy = CreateWindowEx(0, WC_COMBOBOX, TEXT("policy"),
+			WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
+			//CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+			180, yPos, 300, 20, ui_settingsWnd, NULL, hInstance, NULL);
+
+		SendMessage(ui_otrl_policy, CB_ADDSTRING, (WPARAM)0, (LPARAM)TEXT("Nigdy"));
+		SendMessage(ui_otrl_policy, CB_ADDSTRING, (WPARAM)0, (LPARAM)TEXT("Rêcznie"));
+		SendMessage(ui_otrl_policy, CB_ADDSTRING, (WPARAM)0, (LPARAM)TEXT("Automatycznie"));
+		SendMessage(ui_otrl_policy, CB_ADDSTRING, (WPARAM)0, (LPARAM)TEXT("Zawsze"));
+		SendMessage(ui_otrl_policy, CB_SETCURSEL, (WPARAM)getOtrlPolicy(), (LPARAM)0);
 
 		// Checkbox
-		CreateWindowEx(0, L"BUTTON", cb_force_enc,
-			WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | WS_DISABLED, 8, 75, 550, 20, ui_settingsWnd, NULL, hInstance, NULL);
+		//CreateWindowEx(0, L"BUTTON", cb_force_enc, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | WS_DISABLED,
+		//	8, yPos+=25, 550, 20, ui_settingsWnd, NULL, hInstance, NULL);
 
 		// Checkbox
-		CreateWindowEx(0, L"BUTTON", cb_do_archive,
-			WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | WS_DISABLED, 8, 100, 550, 20, ui_settingsWnd, NULL, hInstance, NULL);
+		CreateWindowEx(0, L"BUTTON", cb_do_archive, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | WS_DISABLED,
+			8, yPos+=30, 550, 20, ui_settingsWnd, NULL, hInstance, NULL);
+
+		// Checkbox - save logs to file
+		ui_log_to_file = CreateWindowEx(0, L"BUTTON", cb_log_to_file, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+			8, yPos += 25, 550, 20, ui_settingsWnd, (HMENU)UI_SETTING_HMENU_LOG_TO_FILE, hInstance, NULL);
+		{
+			bool checked = false;
+			if (getSettingValueHelper(SETTING_KEY_LOG_TO_FILE, SETTING_TYPE_BOOL, &checked) && checked) {
+				CheckDlgButton(ui_settingsWnd, UI_SETTING_HMENU_LOG_TO_FILE, BST_CHECKED);
+			}	
+		}
 
 		// GroupBox
 		CreateWindow(L"BUTTON", priv_key, WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
-			0, 135, 720, 110, ui_settingsWnd, NULL, hInstance, NULL);
+			0, yPos+=35, 720, 110, ui_settingsWnd, NULL, hInstance, NULL);
 
 		HWND labelFile2 = CreateWindowEx(0, L"STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_LEFT,
-			5, 160, 130, 20, ui_settingsWnd, NULL, hInstance, NULL);
+			5, yPos += 25, 130, 20, ui_settingsWnd, NULL, hInstance, NULL);
 		SetWindowText(labelFile2, priv_key_file);
 
 		// Edit - private key file path
 		ui_privateKeyFilePath = CreateWindowEx(0, L"EDIT", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_READONLY,
-			120, 158, 590, 20, ui_settingsWnd, NULL, hInstance, NULL);
+			120, yPos-2, 590, 20, ui_settingsWnd, NULL, hInstance, NULL);
 		SetWindowText(ui_privateKeyFilePath, getPrivateKeyFullPath());
 
 		if (otrl_privkey_fingerprint(itsWtwOTRmessaging->getOtrlUserState(),
-							buffer, getOtrlAccountName(), utf16Toutf8(getProtocolNetClass())))
+							buffer, getOtrlAccountName(),
+							"XMPP"	/*utf16Toutf8(getProtocolNetClass())*/
+							// TODO: change constant "XMPP" string above! (display tabs for each protocol?)
+							))
 		{
 			//wcscpy_s(wc_buffer, 255, L"Private key hash: ");
 			//size_t len = wcslen(wc_buffer);
@@ -576,17 +645,17 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 		}
 		// Edit - private key hash
 		HWND hash = CreateWindowEx(0, L"EDIT", NULL, WS_CHILD | WS_VISIBLE | ES_READONLY,
-			5, 190, 510, 20, ui_settingsWnd, NULL, hInstance, NULL);
+			5, yPos+=30, 510, 20, ui_settingsWnd, NULL, hInstance, NULL);
 		SetWindowText(hash, wc_buffer);
 
 		// Button
 		CreateWindowW(L"BUTTON", generate_priv_key, WS_CHILD | WS_VISIBLE | WS_DISABLED,
-			5, 215, 190, 25, ui_settingsWnd, (HMENU)1, hInstance, NULL);
+			5, yPos+=25, 190, 25, ui_settingsWnd, (HMENU)1, hInstance, NULL);
 
 
 		// GroupBox
 		CreateWindow(L"BUTTON", known_keys, WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
-			0, 250, 720, 190, ui_settingsWnd, NULL, hInstance, NULL);
+			0, yPos+=40, 720, 190, ui_settingsWnd, NULL, hInstance, NULL);
 
 		// List of key hashes
 #if 0
@@ -596,7 +665,7 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 		InitCommonControlsEx(&icex);
 #endif
 		ui_keyList = CreateWindow(WC_LISTVIEW, NULL, WS_CHILD | WS_VISIBLE | LVS_REPORT | WS_BORDER,
-			5, 270, UI_SETTINGS_WIDTH-20, 135, ui_settingsWnd, NULL, hInstance, NULL);
+			5, yPos+=20, UI_SETTINGS_WIDTH - 20, 135, ui_settingsWnd, NULL, hInstance, NULL);
 		ListView_SetExtendedListViewStyle(ui_keyList, /* LVS_EX_CHECKBOXES |*/ LVS_EX_FULLROWSELECT | LVS_EX_HEADERDRAGDROP);
 		{
 			LVCOLUMN lvc = { 0 };
@@ -629,16 +698,19 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 		// Verify key Button
 		// TODO: enable button below (remove WS_DISABLED)
 		CreateWindowW(L"BUTTON", L"Werifikuj klucz", WS_CHILD | WS_VISIBLE | WS_DISABLED,
-			5, 410, 150, 25, ui_settingsWnd, (HMENU)2, hInstance, NULL);
+			5, yPos += 140, 150, 25, ui_settingsWnd, (HMENU)UI_SETTING_HMENU_VERIFY_KEY, hInstance, NULL);
 
 		// Remove key Button
 		CreateWindowW(L"BUTTON", L"Odrzuæ klucz", WS_CHILD | WS_VISIBLE,
-			200, 410, 150, 25, ui_settingsWnd, (HMENU)3, hInstance, NULL);
+			200, yPos, 150, 25, ui_settingsWnd, (HMENU)UI_SETTING_HMENU_FORGET_KEY, hInstance, NULL);
 
 
 		delete[] buffer;
 		delete[] wc_buffer;
 	}
+
+	// SetWinowPos sends WS_SIZE which places window correctly in the available area
+	SetWindowPos(ui_settingsWnd, 0, pInfo->x, pInfo->y, pInfo->cx, pInfo->cy, 0);
 
 	return 0;
 }
@@ -667,12 +739,40 @@ WTW_PTR SettingsBroker::onActionOk(wtwOptionPageShowInfo* pInfo)
 
 WTW_PTR SettingsBroker::onActionApply(wtwOptionPageShowInfo* pInfo)
 {
+#if 1 // DO_NOT_USE_WTWAPI_SETTINGS_FUNCTIONS
+
+	settingsMap[SETTING_KEY_OTRL_POLICY].value_uint = static_cast<unsigned int>(
+		SendMessage((HWND)ui_otrl_policy, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0) );
+	LOG_TRACE(L"%s() policy set to: %u", __FUNCTIONW__, settingsMap[SETTING_KEY_OTRL_POLICY].value_uint);
+
+	settingsMap[SETTING_KEY_LOG_TO_FILE].value_bool =
+		(BST_CHECKED == IsDlgButtonChecked(ui_settingsWnd, UI_SETTING_HMENU_LOG_TO_FILE));
+
+	saveSettingsToFile();
+
+#else
 	// Save settings
 	if (nullptr != pSettingsInterface)
 	{
+
+		int logToFile = (BST_CHECKED == IsDlgButtonChecked(ui_settingsWnd, UI_SETTING_HMENU_LOG_TO_FILE));
+		if (-1 != wtwSetInt(wtw, pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_LOG_TO_FILE], logToFile))
+		{
+			LOG_CRITICAL(L"wtwSetInt OK OK OK");
+		}
+		else
+		{
+			LOG_CRITICAL(L"wtwSetInt ZLE ZLE");
+		}
+
 		GetWindowText(ui_privateKeyFilePath, settingsMap[SETTING_KEY_PRIV_KEY_FILE_PATH].value_wc_string, MAX_FILE_PATH_LEN);
 		wtwSetStr(wtw, pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_PRIV_KEY_FILE_PATH], getPrivateKeyFullPath());
-		//wtwSetStr(wtw,pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_PRIV_KEY_FILE_PATH], L"c:\\golkow\\dwa");
+
+//wtwSetStr(wtw, pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_PRIV_KEY_FILE_PATH], getPrivateKeyFullPath());
+//wtwSetStr(wtw, pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_PRIV_KEY_FILE_PATH], getPrivateKeyFullPath());
+//wtwSetStr(wtw, pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_PRIV_KEY_FILE_PATH], getPrivateKeyFullPath());
+
+		//wtwSetStr(wtw,pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_PRIV_KEY_FILE_PATH], L"c:\\");
 		//MessageBox(ui_settingsWnd, getPrivateKeyFullPath(), L"PrivateKeyFile - to zapisalem", MB_OK);
 
 		// TODO: save accountName & protocol and also other settings members in this class
@@ -681,8 +781,8 @@ WTW_PTR SettingsBroker::onActionApply(wtwOptionPageShowInfo* pInfo)
 			//LOG_DEBUG(L"Settings saved successfully");
 		}
 		else {
-			LOG_ERROR(L"Saving settings to file failed!");
-			MessageBox(ui_settingsWnd, L"Saving settings to file failed!", L"wtwOTRmessaging error", MB_OK);
+			LOG_CRITICAL(L"Saving settings to file failed!");
+			//MessageBox(ui_settingsWnd, L"Saving settings to file failed!", L"wtwOTRmessaging error", MB_OK);
 			return -1;
 		}
 	}
@@ -690,6 +790,7 @@ WTW_PTR SettingsBroker::onActionApply(wtwOptionPageShowInfo* pInfo)
 		LOG_ERROR(L"SettingsBroker::onActionApply() pSettingsInterface = nullptr");
 		return -2;
 	}
+#endif
 
 	return 0;
 }
@@ -697,7 +798,6 @@ WTW_PTR SettingsBroker::onActionApply(wtwOptionPageShowInfo* pInfo)
 
 WTW_PTR SettingsBroker::onActionCancel(wtwOptionPageShowInfo* pInfo)
 {
-	//MessageBox(NULL, L"onActionCancel", L"Parametry", MB_OK);
 	if (ui_settingsWnd) {
 		DestroyWindow(ui_settingsWnd);
 		ui_settingsWnd = 0;
@@ -708,26 +808,39 @@ WTW_PTR SettingsBroker::onActionCancel(wtwOptionPageShowInfo* pInfo)
 
 WTW_PTR SettingsBroker::onActionMove(wtwOptionPageShowInfo* pInfo)
 {
-	//MessageBox(NULL, L"onActionMove", L"Parametry", MB_OK);
-	//LOG_DEBUG(L"SettingsBroker::onActionMove() not implemented! %d,%d   %d,%d", pInfo->x, pInfo->y, pInfo->cx, pInfo->cy);
-
 	if (nullptr != ui_settingsWnd) {
 		SetWindowPos(ui_settingsWnd, HWND_TOP, pInfo->x, pInfo->y, pInfo->cx, pInfo->cy, pInfo->flags);
 	} else {
 		LOG_ERROR(L"SettingsBroker::onActionMove() - ui_settingsWnd is null!");
 	}
-	
 	return 0;
 }
 
 
 WTW_PTR SettingsBroker::onActionReload(wtwOptionPageShowInfo* pInfo)
 {
-	//MessageBox(NULL, L"onActionReload", L"Parametry", MB_OK);
+#if 1
 
-	if (nullptr != pSettingsInterface) {
-		if (1 == wtw->fnCall(WTW_SETTINGS_READ, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL)) {
+	loadSettingsFromFile();
+
+#else
+	if (nullptr != pSettingsInterface)
+	{
+		if (1 == wtw->fnCall(WTW_SETTINGS_READ, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL))
+		{
 			//LOG_DEBUG(__FUNCTIONW__ L" Read settings from file successfully");
+
+			
+			bool logToFile = wtwGetInt(wtw, pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_LOG_TO_FILE], false);
+			CheckDlgButton(ui_settingsWnd, UI_SETTING_HMENU_LOG_TO_FILE,
+				(true == logToFile) ? BST_CHECKED : BST_UNCHECKED);
+
+if(logToFile)
+LOG_CRITICAL(L"logToFile  BST_CHECKED OK");
+else
+LOG_CRITICAL(L"logToFile  BST_UNCHECKED  UN");
+
+ASSERT(0);
 
 			wchar_t *buffer;
 			wtwGetStr(wtw, pSettingsInterface, SETTINGS_WTW_NAMES[SETTING_KEY_PRIV_KEY_FILE_PATH], L"default-val", &buffer);
@@ -745,18 +858,18 @@ WTW_PTR SettingsBroker::onActionReload(wtwOptionPageShowInfo* pInfo)
 			LOG_WARN(__FUNCTIONW__ L" Reading settings from file failed - setting default values!");
 
 			CString key_file = getSettingsDataDir();
-			key_file += L"key.secret";
+			key_file += PRIV_KEY_FILE_NAME;
 			wcscpy_s(settingsMap[SETTING_KEY_PRIV_KEY_FILE_PATH].value_wc_string,
 				sizeof(settingsMap[SETTING_KEY_PRIV_KEY_FILE_PATH].value_wc_string) / sizeof(wchar_t),
 				key_file);
 		}
-
-		
 	}
-	else {
+	else
+	{
 		LOG_CRITICAL(L"SettingsBroker::onActionReload() No interface to reload settings!");
 		return -2;
 	}
+#endif
 
 	return 0;
 }
@@ -771,6 +884,7 @@ void SettingsBroker::setSettingsBrokerInstancePointer()
 	} else {
 		LOG_CRITICAL(L"Second instance of Settings cannot be created!");
 		// TODO: retun some error so that plugin get unloaded
+		ASSERT(0);
 		return;
 	}
 }
@@ -811,6 +925,10 @@ void SettingsBroker::makeSettingsFilesPaths()
 #endif
 
 		//LOG_DEBUG(L"%s() settings file path: %s", __FUNCTIONW__, settingsMap[SETTING_KEY_SETTINGS_FILE_PATH].value_wc_string);
+
+		StringCbPrintfW(settingsMap[SETTING_KEY_PRIV_KEY_FILE_PATH].value_wc_string,
+			sizeof(settingsMap[SETTING_KEY_PRIV_KEY_FILE_PATH].value_wc_string), L"%s%s",
+			settingsMap[SETTING_KEY_DATA_DIR].value_wc_string, PRIV_KEY_FILE_NAME);
 
 		StringCbPrintfW(settingsMap[SETTING_KEY_INSTAG_FILE_PATH].value_wc_string,
 			sizeof(settingsMap[SETTING_KEY_INSTAG_FILE_PATH].value_wc_string), L"%s%s",
@@ -890,6 +1008,8 @@ void SettingsBroker::registerWndClass()
 // Initialize settings
 void SettingsBroker::initializeSettingsValues()
 {
+	memset(settingsMap, 0, sizeof(settingsMap));
+
 	for (int index = 0; index < SETTING_KEY_NUMBER_OF_KEYS; ++index)
 	{
 		switch (index)
@@ -909,6 +1029,7 @@ void SettingsBroker::initializeSettingsValues()
 		case SETTING_KEY_FINGERPRINT_FILE_PATH:
 			settingsMap[index].type = SETTING_TYPE_WC_STRING;
 			break;
+/*
 		case SETTING_KEY_PROTOCOL_NET_CLASS:
 			settingsMap[index].type = SETTING_TYPE_WC_STRING;
 			wcscpy_s(settingsMap[index].value_wc_string,
@@ -926,6 +1047,15 @@ void SettingsBroker::initializeSettingsValues()
 				sizeof(settingsMap[index].value_c_string),
 				"account_name");
 			break;
+*/
+		case SETTING_KEY_LOG_TO_FILE:
+			settingsMap[index].type = SETTING_TYPE_BOOL;
+			settingsMap[index].value_bool = false;
+			break;
+		case SETTING_KEY_OTRL_POLICY:
+			settingsMap[index].type = SETTING_TYPE_UINT;
+			settingsMap[index].value_bool = false;
+			break;
 
 		default:
 			LOG_CRITICAL(L"SettingsBroker::setSettingsDefaultValues() - no default val for %d", index);
@@ -933,7 +1063,7 @@ void SettingsBroker::initializeSettingsValues()
 	}
 }
 
-
+#if 0
 void SettingsBroker::createSettingsIterface()
 {
 	/*
@@ -962,14 +1092,40 @@ void SettingsBroker::createSettingsIterface()
 		return;
 	}
 }
+#endif
 
 
+bool SettingsBroker::getSettingValueHelper(SETTING_KEY key, SETTING_TYPE type, void* value) const
+{
+	if ((key >= 0) && (key < SETTING_KEY_NUMBER_OF_KEYS) &&
+		(type == settingsMap[key].type) && (nullptr != value))
+	{
+		switch (type) {
+		case SETTING_TYPE_BOOL:
+			*(reinterpret_cast<bool*>(value)) = settingsMap[key].value_bool;
+			return true;
+		case SETTING_TYPE_UINT:
+			*(reinterpret_cast<unsigned int*>(value)) = settingsMap[key].value_uint;
+			return true;
+		default:
+			LOG_CRITICAL(L"%s() wrong key type", __FUNCTIONW__);
+		}
+	}
+	else {
+		LOG_CRITICAL(L"%s() Trying to read invalid setting", __FUNCTIONW__);
+	}
+
+	return false;
+}
+
+
+#if 0
 void SettingsBroker::destroySettingsInterface()
 {
 	wtw->fnCall(WTW_SETTINGS_DESTROY, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL);
 	pSettingsInterface = 0;
 }
-
+#endif
 
 
 void SettingsBroker::ui_update_keylist()
@@ -1185,4 +1341,38 @@ void SettingsBroker::ui_forget_fingerprint()
 
 		MessageBox(settingsBrokerInstance->ui_settingsWnd, text, L"Info", MB_ICONINFORMATION);
 	}
+}
+
+
+
+
+void SettingsBroker::loadSettingsFromFile()
+{
+	const wchar_t *fn = getSettingsFileFullPath();
+	
+	settingsMap[SETTING_KEY_LOG_TO_FILE].value_bool =
+		(0 != GetPrivateProfileInt(L"global", SETTINGS_WTW_NAMES[SETTING_KEY_LOG_TO_FILE], false, fn));
+
+	settingsMap[SETTING_KEY_OTRL_POLICY].value_uint =
+		GetPrivateProfileInt(L"global", SETTINGS_WTW_NAMES[SETTING_KEY_OTRL_POLICY],
+			static_cast<unsigned int>(OTRL_POLICY::OPPORTUNISTIC), fn);
+	LOG_TRACE(L"%s() policy set to: %u", __FUNCTIONW__, settingsMap[SETTING_KEY_OTRL_POLICY].value_uint);
+}
+
+
+
+void SettingsBroker::saveSettingsToFile()
+{
+	const wchar_t *fn = getSettingsFileFullPath();
+	wchar_t value[255];
+
+	bool ltf = false;
+	getSettingValueHelper(SETTING_KEY_LOG_TO_FILE, SETTING_TYPE_BOOL, &ltf);
+	_snwprintf_s(value, sizeof(value) / sizeof(value[0]), sizeof(value) / sizeof(value[0]), L"%d", (int)ltf);
+	WritePrivateProfileString(L"global", SETTINGS_WTW_NAMES[SETTING_KEY_LOG_TO_FILE], value, fn);
+
+	unsigned int policy = 0;
+	getSettingValueHelper(SETTING_KEY_OTRL_POLICY, SETTING_TYPE_UINT, &policy);
+	_snwprintf_s(value, sizeof(value) / sizeof(value[0]), sizeof(value) / sizeof(value[0]), L"%u", policy);
+	WritePrivateProfileString(L"global", SETTINGS_WTW_NAMES[SETTING_KEY_OTRL_POLICY], value, fn);
 }

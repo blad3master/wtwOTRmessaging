@@ -9,6 +9,13 @@ class wtwOTRmessaging;
 class SettingsBroker
 {
 public:
+	enum class OTRL_POLICY : unsigned int {
+		NEVER,
+		MANUAL,
+		OPPORTUNISTIC,
+		ALWAYS
+	};
+
 	SettingsBroker(wtwOTRmessaging*);
 	~SettingsBroker(void);
 
@@ -20,14 +27,16 @@ public:
 	const wchar_t * getFigerprintFileFullPath() const;
 
 	// used for netClass in wtw structs
-	const wchar_t * getProtocolNetClass() const;
+//	const wchar_t * getProtocolNetClass() const;
 //	inline void setOTRLprotocol(const char *protocol);
 
 	// used for netId in wtw structs
-	int getProtocolNetId() const;
+//	int getProtocolNetId() const;
 	//	inline void setOTRLaccountName(const char *accountName);
 
 	const char * getOtrlAccountName() const;
+
+	OTRL_POLICY getOtrlPolicy() const;
 
 	void ui_update_keylist();
 
@@ -37,15 +46,22 @@ public:
 
 private:
 	static const unsigned int MAX_SETTING_STRING_LEN = 512;
-	static const unsigned int MAX_FILE_PATH_LEN = 120;
+	static const unsigned int MAX_FILE_PATH_LEN = 200;
 
 	static const int UI_SETTINGS_WIDTH = 730; // in px
-	static const int UI_SETTINGS_HEIGHT = 450; // in px
+	static const int UI_SETTINGS_HEIGHT = 470; // in px
+	enum UI_SETTINGS_HMENU {
+		UI_SETTING_HMENU_1 = 1,
+		UI_SETTING_HMENU_VERIFY_KEY,
+		UI_SETTING_HMENU_FORGET_KEY,
+		UI_SETTING_HMENU_LOG_TO_FILE = 100,
+	};
 
 	static const wchar_t * const SETTINGS_FILE_NAME;
+	static const wchar_t * const PRIV_KEY_FILE_NAME;
 	static const wchar_t * const INSTAG_FILE_NAME;
 	static const wchar_t * const FINGERPRINT_FILE_NAME;
-	static const wchar_t * SettingsWindowClassName;				// Class name used to register settings window
+	static const wchar_t * const SettingsWindowClassName; // Class name used to register settings window
 
 	enum SETTING_KEY {
 		SETTING_KEY_DATA_DIR,				// Directory where plugin settings will be kept
@@ -53,14 +69,17 @@ private:
 		SETTING_KEY_PRIV_KEY_FILE_PATH,
 		SETTING_KEY_INSTAG_FILE_PATH,
 		SETTING_KEY_FINGERPRINT_FILE_PATH,
-		SETTING_KEY_PROTOCOL_NET_CLASS,
-		SETTING_KEY_PROTOCOL_NET_ID,
-		SETTING_KEY_OTRL_ACCOUNT_NAME,
-		SETTING_KEY_NUMBER_OF_KEYS,
+//		SETTING_KEY_PROTOCOL_NET_CLASS,
+//		SETTING_KEY_PROTOCOL_NET_ID,
+//		SETTING_KEY_OTRL_ACCOUNT_NAME,
+		SETTING_KEY_OTRL_POLICY,
+		SETTING_KEY_LOG_TO_FILE,
+		SETTING_KEY_NUMBER_OF_KEYS			// used for boundary checks
 	};
 
 	enum SETTING_TYPE {
 		SETTING_TYPE_INVALID,
+		SETTING_TYPE_BOOL,
 		SETTING_TYPE_INT,
 		SETTING_TYPE_UINT,
 		SETTING_TYPE_C_STRING,
@@ -70,6 +89,7 @@ private:
 	struct SETTING {
 		SETTING_TYPE type;
 		union {
+			bool value_bool;
 			int value_int;
 			unsigned int value_uint;
 			char value_c_string[MAX_SETTING_STRING_LEN];
@@ -113,6 +133,12 @@ private:
 	// Private key - full file path
 	HWND ui_privateKeyFilePath;
 
+	// OTRL policy combobox
+	HWND ui_otrl_policy;
+
+	// Enable logging to file?
+	HWND ui_log_to_file;
+
 	// List of keys
 	HWND ui_keyList = 0;
 	std::vector<void*> keyList_fingerprints; // mapping of ui_keyList indexes to ConnContext->fingerprint
@@ -120,9 +146,6 @@ private:
 
 	// Pointer to main class
 	wtwOTRmessaging * itsWtwOTRmessaging;
-
-	// pSettings handler
-	void *pSettingsInterface = nullptr;
 
 private:
 	// forget the peer fingerprint (key)
@@ -145,7 +168,7 @@ private:
 
 	WTW_PTR onActionReload(wtwOptionPageShowInfo*);
 
-	bool getSettingValueHelper(SETTING_KEY key, SETTING_TYPE type);
+	bool getSettingValueHelper(SETTING_KEY key, SETTING_TYPE type, void* value) const;
 
 	static LRESULT CALLBACK settings_class_callback(HWND, UINT, WPARAM, LPARAM);
 
@@ -167,24 +190,13 @@ private:
 
 	void initializeSettingsValues();
 
-	void createSettingsIterface();
+//	void createSettingsIterface();
 
-	void destroySettingsInterface();
+//	void destroySettingsInterface();
+
+	void loadSettingsFromFile();
+	
+	void saveSettingsToFile();
 };
 
-/*
-bool SettingsBroker::getSettingValueHelper(SETTINGS_KEY key, SETTING_TYPE type, outValue) {
-	if ((key >= 0) && (key < SETTINGS_NUMBER_OF_KEYS) && (type == settingsMap[key].type) {
-		switch (type) {
-		case SETTING_TYPE_INT:	return
 
-		}
-	}
-	else {
-		Logger::critical(L"getSettingValueHelper() Trying to read invalid setting");
-		return 1;
-	}
-
-	return 0;
-}
-*/
