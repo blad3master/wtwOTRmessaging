@@ -88,6 +88,7 @@ public:
 	wchar_t peer[255];
 	wchar_t netClass[255];
 	int netId;
+	bool privateConverstationEnded;	// set to true when trying to send encrypted msg but peer has ended it
 
 	MY_ConnContext_STRUCT() {}
 
@@ -161,6 +162,8 @@ private:
 	HANDLE onBeforeMsgDisp2_hook;
 	HANDLE onProtocolEvent_hook;
 	HANDLE onChatwndBeforeMsgProc_hook;
+	HANDLE onCELReceive_hook;
+	HANDLE onCELBeforeSend_hook;
 
 
 	bool otrl_timer_set = false;
@@ -192,6 +195,12 @@ private:
 
 	// WTW callback
 	static WTW_PTR onChatwndBeforeMsgProc_cb(WTW_PARAM, WTW_PARAM, void*);
+
+	// WTW callback
+	static WTW_PTR onCELReceive_cb(WTW_PARAM, WTW_PARAM, void*);
+
+	// WTW callback
+	static WTW_PTR onCELBeforeSend_cb(WTW_PARAM, WTW_PARAM, void*);
 
 	/******************/
 	/* OTRL CALLBACKS */
@@ -438,6 +447,8 @@ private:
 	void displayMsgInChat(const MY_ConnContext_STRUCT* wtwContact,
 		const wchar_t *msg, bool fontBold = true, bool tooltip = true);
 
+	// return true if plugin works with give protocol
+	static bool isNetClassSupported(const wchar_t* netClass);
 };
 
 ChatBroker & wtwOTRmessaging::getChatBroker() {

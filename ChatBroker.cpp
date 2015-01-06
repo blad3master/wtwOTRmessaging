@@ -36,17 +36,17 @@ std::map<std::wstring, void*> ChatBroker::chatWndList;
 ChatBroker::ChatBroker(void)
 {
 	// When chat window is shown, execute handler
-	onChatWndCreateHook = wtw->evHook(WTW_EVENT_ON_CHATWND_CREATE, ChatBroker::onChatWndCreate, this);
-	onChatWndDestroyHook = wtw->evHook(WTW_EVENT_ON_CHATWND_DESTROY, ChatBroker::onChatWndDestroy, this);
-	onChatWndShowHook = wtw->evHook(WTW_EVENT_ON_CHATWND_SHOW, ChatBroker::onChatWndShow, this);
+	onChatWndCreateHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_CREATE, ChatBroker::onChatWndCreate, this);
+	onChatWndDestroyHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_DESTROY, ChatBroker::onChatWndDestroy, this);
+	onChatWndShowHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_SHOW, ChatBroker::onChatWndShow, this);
 }
 
 
 ChatBroker::~ChatBroker(void)
 {
-	wtw->evUnhook(onChatWndShowHook);
-	wtw->evUnhook(onChatWndDestroyHook);
-	wtw->evUnhook(onChatWndCreateHook);
+	wtwPf->evUnhook(onChatWndShowHook);
+	wtwPf->evUnhook(onChatWndDestroyHook);
+	wtwPf->evUnhook(onChatWndCreateHook);
 }
 
 
@@ -271,7 +271,7 @@ void ChatBroker::update_ui()
 		initStruct(ce);
 		ce.pWnd = it.second;
 		ce.itemId = ITEM_ID;
-		wtw->fnCall(WTW_CCB_FUNCT_DEL, reinterpret_cast<WTW_PARAM>(&ce), NULL);
+		wtwPf->fnCall(WTW_CCB_FUNCT_DEL, reinterpret_cast<WTW_PARAM>(&ce), NULL);
 
 		initStruct(ce);
 		ce.pWnd = it.second;
@@ -283,7 +283,7 @@ void ChatBroker::update_ui()
 		ce.toolTip = msgstate_tooltip;
 		ce.itemFlags = CHB_FLAG_CHECKED;
 
-		wtw->fnCall(WTW_CCB_FUNCT_ADD, reinterpret_cast<WTW_PARAM>(&ce), NULL);
+		wtwPf->fnCall(WTW_CCB_FUNCT_ADD, reinterpret_cast<WTW_PARAM>(&ce), NULL);
 	}
 }
 

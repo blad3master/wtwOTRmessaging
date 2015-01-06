@@ -63,7 +63,7 @@ void Logger::startLoggingToFile()
 		di.bi.bufferSize = MAX_FILE_PATH_LEN;
 		di.bi.pBuffer = filepath;
 
-		if (S_OK == wtw->fnCall(WTW_GET_DIRECTORY_LOCATION, reinterpret_cast<WTW_PARAM>(&di), NULL))
+		if (S_OK == wtwPf->fnCall(WTW_GET_DIRECTORY_LOCATION, reinterpret_cast<WTW_PARAM>(&di), NULL))
 		{
 			if (0 != wcsncmp(L"", filepath, MAX_FILE_PATH_LEN))
 			{
@@ -121,7 +121,7 @@ void Logger::critical(const wchar_t *msg)
 	logToFile(msg);
 	if (LEVEL::LEVEL_CRITICAL & loggingFlags)
 	{
-		__LOG(wtw, LOG_PREFIX, msg, WTW_LOG_LEVEL_CRITICAL);
+		__LOG(wtwPf, LOG_PREFIX, msg, WTW_LOG_LEVEL_CRITICAL);
 	}
 }
 
@@ -130,7 +130,7 @@ void Logger::error(const wchar_t *msg)
 {
 	logToFile(msg);
 	if (LEVEL::LEVEL_ERROR & loggingFlags) {
-		__LOG(wtw, LOG_PREFIX, msg, WTW_LOG_LEVEL_ERROR);
+		__LOG(wtwPf, LOG_PREFIX, msg, WTW_LOG_LEVEL_ERROR);
 	}
 }
 
@@ -139,7 +139,7 @@ void Logger::warn(const wchar_t *msg) {
 	logToFile(msg);
 	if (LEVEL::LEVEL_WARN & loggingFlags)
 	{
-		__LOG(wtw, LOG_PREFIX, msg, WTW_LOG_LEVEL_ERROR);
+		__LOG(wtwPf, LOG_PREFIX, msg, WTW_LOG_LEVEL_ERROR);
 	}
 }
 
@@ -149,7 +149,7 @@ void Logger::info(const wchar_t *msg)
 	logToFile(msg); 
 	if (LEVEL::LEVEL_INFO & loggingFlags)
 	{
-		__LOG(wtw, LOG_PREFIX, msg, WTW_LOG_LEVEL_INFO);
+		__LOG(wtwPf, LOG_PREFIX, msg, WTW_LOG_LEVEL_INFO);
 	}
 }
 
@@ -159,7 +159,7 @@ void Logger::debug(const wchar_t *msg)
 	logToFile(msg);
 	if (LEVEL::LEVEL_DEBUG & loggingFlags)
 	{
-		__LOG(wtw, LOG_PREFIX, msg, WTW_LOG_LEVEL_NORMAL);
+		__LOG(wtwPf, LOG_PREFIX, msg, WTW_LOG_LEVEL_NORMAL);
 	}
 }
 
@@ -168,7 +168,7 @@ void Logger::trace(const wchar_t *msg)
 	logToFile(msg);
 	if (LEVEL::LEVEL_TRACE & loggingFlags)
 	{
-		//__LOG(wtw, LOG_PREFIX, msg, WTW_LOG_LEVEL_DEBUG);
+		//__LOG(wtwPf, LOG_PREFIX, msg, WTW_LOG_LEVEL_DEBUG);
 	}
 }
 

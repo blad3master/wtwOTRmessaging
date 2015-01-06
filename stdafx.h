@@ -53,7 +53,7 @@
 #pragma warning(default: 4996)
 
 // Make it globally visible (but not exported)
-extern WTWFUNCTIONS* wtw;
+extern WTWFUNCTIONS* wtwPf;
 extern HINSTANCE hInstance;
 
 #define TO_WTW_PARAM(x) reinterpret_cast<WTW_PARAM>(x)

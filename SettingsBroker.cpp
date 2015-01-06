@@ -540,8 +540,8 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 	CString known_keys = L"Known keys";
 	#endif
 
-	wcscpy_s(pInfo->windowCaption, 256, caption);
-	wcscpy_s(pInfo->windowDescrip, 512, description);
+	wcscpy_s(pInfo->windowCaption, _countof(pInfo->windowCaption), caption);
+	wcscpy_s(pInfo->windowDescrip, _countof(pInfo->windowDescrip), description);
 	// TODO: prepare big icon and set "icon" or "iconId";
 
 	if (nullptr != ui_settingsWnd)
@@ -598,7 +598,8 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 
 		// Checkbox
 		CreateWindowEx(0, L"BUTTON", cb_do_archive, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | WS_DISABLED,
-			8, yPos+=30, 550, 20, ui_settingsWnd, NULL, hInstance, NULL);
+			8, yPos += 30, 550, 20, ui_settingsWnd, (HMENU)UI_SETTING_HMENU_ARCHIVE_MESSAGES, hInstance, NULL);
+		CheckDlgButton(ui_settingsWnd, UI_SETTING_HMENU_ARCHIVE_MESSAGES, BST_CHECKED);
 
 		// Checkbox - save logs to file
 		ui_log_to_file = CreateWindowEx(0, L"BUTTON", cb_log_to_file, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
@@ -629,7 +630,7 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 							// TODO: change constant "XMPP" string above! (display tabs for each protocol?)
 							))
 		{
-			//wcscpy_s(wc_buffer, 255, L"Private key hash: ");
+			//wcscpy_s(wc_buffer, _countof(wc_buffer), L"Private key hash: ");
 			//size_t len = wcslen(wc_buffer);
 			//mbstowcs_s(0, &(wc_buffer[len]), 255 - len, buffer, 255 - len);
 
@@ -641,7 +642,7 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 				utf8Toutf16("noName"),
 				utf8Toutf16("noProtocol"));
 			
-			//wcscpy_s(wc_buffer, 255, L"No private key hash");
+			//wcscpy_s(wc_buffer, _countof(wc_buffer), L"No private key hash");
 		}
 		// Edit - private key hash
 		HWND hash = CreateWindowEx(0, L"EDIT", NULL, WS_CHILD | WS_VISIBLE | ES_READONLY,
@@ -777,7 +778,7 @@ WTW_PTR SettingsBroker::onActionApply(wtwOptionPageShowInfo* pInfo)
 
 		// TODO: save accountName & protocol and also other settings members in this class
 
-		if (1 == wtw->fnCall(WTW_SETTINGS_WRITE, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL)) {
+		if (1 == wtwPf->fnCall(WTW_SETTINGS_WRITE, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL)) {
 			//LOG_DEBUG(L"Settings saved successfully");
 		}
 		else {
@@ -826,7 +827,7 @@ WTW_PTR SettingsBroker::onActionReload(wtwOptionPageShowInfo* pInfo)
 #else
 	if (nullptr != pSettingsInterface)
 	{
-		if (1 == wtw->fnCall(WTW_SETTINGS_READ, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL))
+		if (1 == wtwPf->fnCall(WTW_SETTINGS_READ, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL))
 		{
 			//LOG_DEBUG(__FUNCTIONW__ L" Read settings from file successfully");
 
@@ -910,7 +911,7 @@ void SettingsBroker::makeSettingsFilesPaths()
 	di.bi.bufferSize = MAX_FILE_PATH_LEN;
 	di.bi.pBuffer = settingsMap[SETTING_KEY_DATA_DIR].value_wc_string;
 
-	if (S_OK == wtw->fnCall(WTW_GET_DIRECTORY_LOCATION, reinterpret_cast<WTW_PARAM>(&di), NULL)) {
+	if (S_OK == wtwPf->fnCall(WTW_GET_DIRECTORY_LOCATION, reinterpret_cast<WTW_PARAM>(&di), NULL)) {
 #if 0
 		wcscpy_s(s_settingsFilePath, MAX_FILE_PATH_LEN, settingsMap[SETTING_KEY_DATA_DIR].value_wc_string);
 		size_t start = wcslen(settingsMap[SETTING_KEY_DATA_DIR].value_wc_string);
@@ -962,14 +963,14 @@ void SettingsBroker::addSettingsPage()
 	optionsPage.callback = SettingsBroker::settings_callback;
 	optionsPage.cbData = this;
 	//optionsPage.ownerData = ;
-	wtw->fnCall(WTW_OPTION_PAGE_ADD, reinterpret_cast<WTW_PARAM>(hInstance),
+	wtwPf->fnCall(WTW_OPTION_PAGE_ADD, reinterpret_cast<WTW_PARAM>(hInstance),
 		reinterpret_cast<WTW_PARAM>(&optionsPage));
 }
 
 
 void SettingsBroker::removeSettingsPage()
 {
-	wtw->fnCall(WTW_OPTION_PAGE_REMOVE, reinterpret_cast<WTW_PARAM>(hInstance),
+	wtwPf->fnCall(WTW_OPTION_PAGE_REMOVE, reinterpret_cast<WTW_PARAM>(hInstance),
 		reinterpret_cast<WTW_PARAM>(WTWOTR_OPTIONS_PAGE_ID));
 }
 
@@ -1071,13 +1072,13 @@ void SettingsBroker::createSettingsIterface()
 	wtwMyConfigFile configName;
 	configName.bufferSize = MAX_PATH;
 	configName.pBuffer = buff;
-	wtw->fnCall(WTW_SETTINGS_GET_MY_CONFIG_FILE, configName, reinterpret_cast<WTW_PARAM>(hInstance));
+	wtwPf->fnCall(WTW_SETTINGS_GET_MY_CONFIG_FILE, configName, reinterpret_cast<WTW_PARAM>(hInstance));
 	LOG_DEBUG(L"createSettingsIterface() WTW_SETTINGS_GET_MY_CONFIG_FILE: '%s'", configName.pBuffer);
 	LOG_DEBUG(L"createSettingsIterface() MY: '%s'", getSettingsFileFullPath());
 	delete [] configName.pBuffer;
 	*/
 
-	if (S_OK == wtw->fnCall(WTW_SETTINGS_INIT_EX,
+	if (S_OK == wtwPf->fnCall(WTW_SETTINGS_INIT_EX,
 		reinterpret_cast<WTW_PARAM>(getSettingsFileFullPath()),
 		reinterpret_cast<WTW_PARAM>(&pSettingsInterface)))
 	{
@@ -1122,7 +1123,7 @@ bool SettingsBroker::getSettingValueHelper(SETTING_KEY key, SETTING_TYPE type, v
 #if 0
 void SettingsBroker::destroySettingsInterface()
 {
-	wtw->fnCall(WTW_SETTINGS_DESTROY, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL);
+	wtwPf->fnCall(WTW_SETTINGS_DESTROY, reinterpret_cast<WTW_PARAM>(pSettingsInterface), NULL);
 	pSettingsInterface = 0;
 }
 #endif
