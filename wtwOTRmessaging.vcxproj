@@ -416,6 +416,11 @@
   <ItemGroup>
     <None Include="version.rc2" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\unsecured_128.png" />
+    <Image Include="bitmap1.bmp" />
+    <Image Include="icon1.ico" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

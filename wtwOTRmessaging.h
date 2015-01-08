@@ -36,68 +36,75 @@ WTW_PLUGIN_API_ENTRY(int) pluginLoad(DWORD /*callReason*/, WTWFUNCTIONS* f);
 WTW_PLUGIN_API_ENTRY(int) pluginUnload(DWORD /*callReason*/);
 
 
-// The struct keeps some data that help to process the message in hooks
-struct MY_wtwMessageDef_STRUCT
-{
-private:
-	static const int _instace_number = 16;
-	static int _instance_index;
-	static MY_wtwMessageDef_STRUCT _instances[_instace_number];
-
-	// do not let create instances - 
-	MY_wtwMessageDef_STRUCT() {};
-	MY_wtwMessageDef_STRUCT(const MY_wtwMessageDef_STRUCT &) = delete;
-	MY_wtwMessageDef_STRUCT(const MY_wtwMessageDef_STRUCT &&) = delete;
-	MY_wtwMessageDef_STRUCT &operator =(const MY_wtwMessageDef_STRUCT &) = delete;
-	MY_wtwMessageDef_STRUCT &operator =(const MY_wtwMessageDef_STRUCT &&) = delete;
-
-public:
-	// Message will be encrypted by OTRL
-	bool msg_encrypt = false;
-
-	void * old_pointer = nullptr;
-
-	const void * old_pointer_const = nullptr;
-
-	// Is message received from network and requires substition to decoded version?
-	// value of 0 means incorrect key
-	unsigned int onBeforeMsgDisp2_replace_key = 0;
-
-	static MY_wtwMessageDef_STRUCT *getInstance() {
-		if (++_instance_index >= _instace_number)
-			_instance_index = 0;
-		memset(&_instances[_instance_index], 0, sizeof(_instances[0]));
-		return &_instances[_instance_index];
-	}
-};
-
-
 // The struct keeps some data that help to process the OTRL events
-struct MY_ConnContext_STRUCT
+struct WtwOtrContext
 {
-	static const int _instace_number = 16;
-	static int _instance_index;
-	static MY_ConnContext_STRUCT _instances[_instace_number];
-
-	MY_ConnContext_STRUCT(const MY_ConnContext_STRUCT &) = delete;
-	MY_ConnContext_STRUCT(const MY_ConnContext_STRUCT &&) = delete;
-	MY_ConnContext_STRUCT &operator =(const MY_ConnContext_STRUCT &) = delete;
-	MY_ConnContext_STRUCT &operator =(const MY_ConnContext_STRUCT &&) = delete;
-
 public:
-	wchar_t peer[255];
-	wchar_t netClass[255];
-	int netId;
-	bool privateConverstationEnded;	// set to true when trying to send encrypted msg but peer has ended it
+	static const int STR_LEN = 255;
+	static const int INSTANCES_TOTAL = 16;
+	bool inUse = false;
 
-	MY_ConnContext_STRUCT() {}
+	struct Wtw {
+		wchar_t id[STR_LEN];
+		wchar_t netClass[STR_LEN];
+		int     netId;
+	} wtw;
 
-	static MY_ConnContext_STRUCT *getInstance() {
-		if (++_instance_index >= _instace_number)
-			_instance_index = 0;
-		memset(&_instances[_instance_index], 0, sizeof(_instances[0]));
-		return &_instances[_instance_index];
+	struct Otr {
+		char username[STR_LEN];		// wtw.id
+		char protocol[STR_LEN];		// wtw.netClass
+		char accountname[STR_LEN];	// wtw.netId
+		
+		ConnContext *context;
+
+		bool privateConverstationEnded;	// set to true when trying to encrypt
+										// typed msg but peer has ended private session
+	} otr;
+
+	WtwOtrContext() {
+		memset(this, 0, sizeof(*this));
 	}
+
+	static WtwOtrContext *getInstance() {
+		for (int i = 0; i < INSTANCES_TOTAL; ++i)
+		{
+			if (false == _instances[i].inUse)
+			{
+				memset(&_instances[i], 0, sizeof(_instances[0]));
+				_instances[i].inUse = true;
+				return &_instances[i];
+			}
+		}
+		LOG_CRITICAL(L"%s() no more free instances", __FUNCTIONW__);
+		return nullptr;
+	}
+
+	static void releaseInstance(void * instancePtr) {
+		// constructor re-initialize all values
+		if (instancePtr)
+		{
+			WtwOtrContext * inst = reinterpret_cast<WtwOtrContext*>(instancePtr);
+			if (inst->otr.context) {
+				inst->otr.context->app_data = nullptr;
+				inst->otr.context->app_data_free = nullptr;
+			}
+			new (instancePtr)WtwOtrContext();
+		}
+	}
+
+	static WtwOtrContext* WtwOtrContext::find(const wtwContactDef &contact);
+
+	static void accountnameFromNetId(char *buf, size_t sizeOfBuf, int netId);
+
+	static int netIdFromAccountname(const char *buf);
+
+private:
+	static WtwOtrContext _instances[INSTANCES_TOTAL];
+
+	WtwOtrContext(const WtwOtrContext &) = delete;
+	WtwOtrContext(const WtwOtrContext &&) = delete;
+	WtwOtrContext &operator =(const WtwOtrContext &) = delete;
+	WtwOtrContext &operator =(const WtwOtrContext &&) = delete;
 };
 
 
@@ -124,7 +131,8 @@ public:
 
 	inline OtrlUserState getOtrlUserState();
 
-	static int sendRawMessageToContact(wtwContactDef* contactDef, const wchar_t *msg, unsigned int extraMsgFlags);
+	static int sendRawMessageToContact(const wchar_t *id, const wchar_t *netClass, int netId,
+		const wchar_t *msg, unsigned int extraMsgFlags);
 
 	static int otrg_plugin_send_default_query_conv(wtwContactDef *contact);
 
@@ -155,13 +163,10 @@ private:
 	// Current timer id for OTR Library
 	//static UINT_PTR OTRL_timer_id;
 
-	// Mappings of encrypted messages to their unencrypted form
-	std::map<unsigned int, char*> encryptedToDecryptedMsgs;
-
 	// WTW hooks
-	HANDLE onBeforeMsgDisp2_hook;
-	HANDLE onProtocolEvent_hook;
-	HANDLE onChatwndBeforeMsgProc_hook;
+	//HANDLE onBeforeMsgDisp2_hook;
+	//HANDLE onProtocolEvent_hook;
+	//HANDLE onChatwndBeforeMsgProc_hook;
 	HANDLE onCELReceive_hook;
 	HANDLE onCELBeforeSend_hook;
 
@@ -188,13 +193,13 @@ private:
 //	static VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 
 	// WTW protocol event callback
-	static WTW_PTR onProtocolEvent_cb(WTW_PARAM, WTW_PARAM, void*);
+	//static WTW_PTR onProtocolEvent_cb(WTW_PARAM, WTW_PARAM, void*);
 
 	// WTW callback
-	static WTW_PTR onBeforeMsgDisp2_cb(WTW_PARAM, WTW_PARAM, void*);
+	//static WTW_PTR onBeforeMsgDisp2_cb(WTW_PARAM, WTW_PARAM, void*);
 
 	// WTW callback
-	static WTW_PTR onChatwndBeforeMsgProc_cb(WTW_PARAM, WTW_PARAM, void*);
+	//static WTW_PTR onChatwndBeforeMsgProc_cb(WTW_PARAM, WTW_PARAM, void*);
 
 	// WTW callback
 	static WTW_PTR onCELReceive_cb(WTW_PARAM, WTW_PARAM, void*);
@@ -433,18 +438,13 @@ private:
 
 	void removeWtwFunctions();
 
-	int processReceivedMessage(wtwMessageDef *pWtwMessage);
-
-	// Generator of keys for encryptedToDecryptedMsgs map
-	static unsigned int getEncryptedToDecryptedMsgsId();
-
 	static int sendRawMessageToNetwork(const char* msg);
 
 	void displayMsgInChat(const wchar_t *peer, const wchar_t *netClass, int netId,
 		const wchar_t *msg, bool fontBold = true, bool tooltip = true);
 
 	// this calls above displayMsgInChat()
-	void displayMsgInChat(const MY_ConnContext_STRUCT* wtwContact,
+	void displayMsgInChat(const WtwOtrContext* wtwOtrContext,
 		const wchar_t *msg, bool fontBold = true, bool tooltip = true);
 
 	// return true if plugin works with give protocol

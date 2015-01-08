@@ -760,4 +760,9 @@
       <Filter>Resources</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon1.ico" />
+    <Image Include="bitmap1.bmp" />
+    <Image Include="..\..\..\unsecured_128.png" />
+  </ItemGroup>
 </Project>

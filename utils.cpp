@@ -4,13 +4,13 @@
 #include <codecvt> // std::codecvt
 
 
-static const int utf8_conv_array_size = 16;
+static const int utf8_conv_array_size = 32;
 static int utf8_conv_array_index = 0;
 static std::string  utf8_conv_array[utf8_conv_array_size];
 
 static const int utf16_conv_array_size = utf8_conv_array_size;
 static int utf16_conv_array_index = 0;
-static std::wstring  utf16_conv_array[utf8_conv_array_size];
+static std::wstring  utf16_conv_array[utf16_conv_array_size];
 
 /*
 void fingerprintToWString(const unsigned char fp[20], wchar_t *dst)

@@ -50,16 +50,26 @@ ChatBroker::~ChatBroker(void)
 }
 
 
+std::wstring ChatBroker::makeKey(const wchar_t *id, const wchar_t *netClass, int netId)
+{
+	wchar_t buf[512];
+	StringCbPrintfW(buf, sizeof(buf), L"%s/%s/%d", id, netClass, netId);
+	return std::wstring(buf);
+}
+
+
 WTW_PTR ChatBroker::onChatWndCreate(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 {
 	// wP - wtwContactDef[], lP - * wtwChatInfo
 	wtwContactDef *p_wtwContactDef = reinterpret_cast<wtwContactDef*>(wParam);
 	wtwChatWindowInfo *p_wtwChatWindowInfo = reinterpret_cast<wtwChatWindowInfo*>(lParam);
 
-	if (chatWndList.find(p_wtwContactDef->id) != chatWndList.end()) {
+	const std::wstring &key = makeKey(p_wtwContactDef->id, p_wtwContactDef->netClass, p_wtwContactDef->netId);
+
+	if (chatWndList.find(key) != chatWndList.end()) {
 		LOG_ERROR(L"%s() wtwContactDef pointer already in the window list!", __FUNCTIONW__);
 	}
-	chatWndList[p_wtwContactDef->id] = p_wtwChatWindowInfo->pWnd;
+	chatWndList[key] = p_wtwChatWindowInfo->pWnd;
 
 	return 0;
 }
@@ -71,7 +81,8 @@ WTW_PTR ChatBroker::onChatWndDestroy(WTW_PARAM wParam, WTW_PARAM lParam, void* p
 	wtwContactDef *p_wtwContactDef = reinterpret_cast<wtwContactDef*>(wParam);
 	wtwChatWindowInfo *p_wtwChatWindowInfo = reinterpret_cast<wtwChatWindowInfo*>(lParam);
 
-	auto it = chatWndList.find(p_wtwContactDef->id);
+	const std::wstring &key = makeKey(p_wtwContactDef->id, p_wtwContactDef->netClass, p_wtwContactDef->netId);
+	auto it = chatWndList.find(key);
 	if (it != chatWndList.end()) {
 		chatWndList.erase(it);
 	} else {
@@ -203,7 +214,10 @@ void ChatBroker::update_ui()
 				(int)context->otr_offer			);
 			*/
 
-			if(it.first == utf8Toutf16(context->username)) {
+			const std::wstring &key = makeKey(utf8Toutf16(context->username),
+				utf8Toutf16(context->protocol), WtwOtrContext::netIdFromAccountname(context->accountname));
+
+			if (it.first == key) {
 				//LOG_INFO(L"%s() ##### setting new info Btn #####", __FUNCTIONW__);
 				match = true;
 				break;
@@ -265,6 +279,24 @@ void ChatBroker::update_ui()
 			*/
 		}
 
+		static bool loadPngOnce = true;
+		static const wchar_t *png_unsecure = L"unsecure";
+		if (loadPngOnce)
+		{
+			loadPngOnce = false;
+
+			wtwGraphics wg;
+			initStruct(wg);
+			wg.graphId = png_unsecure;
+			//wg.filePath = L"icon.png";
+			wg.resourceId = MAKEINTRESOURCE(IDB_PNG1);
+			//wg.resourceId = MAKEINTRESOURCE(IDI_ICON1);
+			wg.hInst = hInstance;
+			wg.flags = 0;
+			wg.imageType = 0; // png
+			wtwPf->fnCall(WTW_GRAPH_LOAD, (WTW_PARAM)&wg, 0);
+		}
+
 		wchar_t ITEM_ID[] = L"wtwOTRmessaging_button";
 
 		wtwCommandEntry ce;
@@ -281,7 +313,8 @@ void ChatBroker::update_ui()
 		ce.cbData = reinterpret_cast<void*>(popup);
 		ce.caption = msgstate_str;
 		ce.toolTip = msgstate_tooltip;
-		ce.itemFlags = CHB_FLAG_CHECKED;
+		ce.itemFlags = CHB_FLAG_CHECKED | CHB_FLAG_CHANGEICON;
+		ce.graphId = png_unsecure;
 
 		wtwPf->fnCall(WTW_CCB_FUNCT_ADD, reinterpret_cast<WTW_PARAM>(&ce), NULL);
 	}
@@ -358,11 +391,13 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 		END_MSG_MAP()
 	};
 
+	char accountname[20];
+	WtwOtrContext::accountnameFromNetId(accountname, sizeof(accountname), peer->netId);
 
 	ConnContext *context = otrl_context_find(wtwOTRmessaging::instance->itsOtrlUserState,
-							utf16Toutf8(peer->id), SettingsBroker::settingsBrokerInstance->getOtrlAccountName(),
+							utf16Toutf8(peer->id), accountname,
 							utf16Toutf8(peer->netClass),
-							OTRL_INSTAG_BEST, 0, nullptr, nullptr,	nullptr );
+							OTRL_INSTAG_BEST, 0, nullptr, wtwOTRmessaging::otrl_ConnContex_created,	nullptr );
 
 	if (nullptr == context || nullptr == context->active_fingerprint || nullptr == context->active_fingerprint->fingerprint)
 	{
@@ -372,13 +407,13 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 
 	char my_fp[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
 	otrl_privkey_fingerprint(wtwOTRmessaging::instance->itsOtrlUserState, my_fp,
-		SettingsBroker::settingsBrokerInstance->getOtrlAccountName(), utf16Toutf8(peer->netClass));
+		accountname, utf16Toutf8(peer->netClass));
 
 	char peer_fp[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
 	otrl_privkey_hash_to_human(peer_fp, context->active_fingerprint->fingerprint);
 
 	AuthDlg dlg;
-	dlg.my_name = SettingsBroker::settingsBrokerInstance->getOtrlAccountName();
+	dlg.my_name = accountname;
 	dlg.my_fingerprint = my_fp;
 	dlg.peer_name = peer->id;
 	dlg.peer_fingerprint = peer_fp;

@@ -34,7 +34,7 @@ public:
 //	int getProtocolNetId() const;
 	//	inline void setOTRLaccountName(const char *accountName);
 
-	const char * getOtrlAccountName() const;
+	//const char * getOtrlAccountName() const;
 
 	OTRL_POLICY getOtrlPolicy() const;
 

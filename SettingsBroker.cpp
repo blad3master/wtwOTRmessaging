@@ -176,21 +176,6 @@ const wchar_t * SettingsBroker::getFigerprintFileFullPath() const
 }
 
 
-// TODO: SettingsBroker::getProtocolNetClass() is buggy since the protocol is not always XMPP!!!
-// REMOVE IT
-/*
-const wchar_t * SettingsBroker::getProtocolNetClass() const
-{
-	if (SETTING_TYPE_WC_STRING == settingsMap[SETTING_KEY_PROTOCOL_NET_CLASS].type) {
-		//LOG_DEBUG(L"getProtocolNetClass(): %s",settingsMap[SETTING_KEY_PROTOCOL_NET_CLASS].value_wc_string);
-		return settingsMap[SETTING_KEY_PROTOCOL_NET_CLASS].value_wc_string;
-	}
-
-	LOG_CRITICAL(L"%s() - invalid setting type", utf8Toutf16(__FUNCTION__));
-	return L"";
-}
-*/
-
 
 /*
 inline void SettingsBroker::setOTRLaccountName(const char *accountName) {
@@ -233,12 +218,13 @@ inline void SettingsBroker::setOTRLprotocol(const char *protocol) {
 */
 
 
+/*
 const char * SettingsBroker::getOtrlAccountName() const
 {
 	static char account_name[] = "account_name";
 
 	return account_name;
-/*
+#if 0
 	if (SETTING_TYPE_C_STRING == settingsMap[SETTING_KEY_OTRL_ACCOUNT_NAME].type) {
 		//LOG_DEBUG(L"getProtocolNetClass(): %s",cToWideCharString(settingsMap[SETTING_KEY_OTRL_ACCOUNT_NAME].value_c_string));
 		return settingsMap[SETTING_KEY_OTRL_ACCOUNT_NAME].value_c_string;
@@ -246,8 +232,9 @@ const char * SettingsBroker::getOtrlAccountName() const
 
 	LOG_CRITICAL(L"%s() - invalid setting type", utf8Toutf16(__FUNCTION__));
 	return "";
-*/
+#endif
 }
+*/
 
 
 SettingsBroker::OTRL_POLICY SettingsBroker::getOtrlPolicy() const
@@ -624,11 +611,18 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 			120, yPos-2, 590, 20, ui_settingsWnd, NULL, hInstance, NULL);
 		SetWindowText(ui_privateKeyFilePath, getPrivateKeyFullPath());
 
-		if (otrl_privkey_fingerprint(itsWtwOTRmessaging->getOtrlUserState(),
+		if ( 0
+			/*
+			&& otrl_privkey_fingerprint(itsWtwOTRmessaging->getOtrlUserState(),
 							buffer, getOtrlAccountName(),
-							"XMPP"	/*utf16Toutf8(getProtocolNetClass())*/
+							
+							pobierz tutaj jakos protokó³
+							
+							// utf16Toutf8(getProtocolNetClass())
 							// TODO: change constant "XMPP" string above! (display tabs for each protocol?)
-							))
+							)
+			*/
+							)
 		{
 			//wcscpy_s(wc_buffer, _countof(wc_buffer), L"Private key hash: ");
 			//size_t len = wcslen(wc_buffer);

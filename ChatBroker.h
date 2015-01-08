@@ -35,6 +35,8 @@ private:
 	// contact->id  =>  chat window handle
 	static std::map<std::wstring, void*> chatWndList;
 
+	static std::wstring makeKey(const wchar_t *id, const wchar_t *netClass, int netId);
+
 	static WTW_PTR onChatWndCreate(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);
 	
 	static WTW_PTR onChatWndDestroy(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);
