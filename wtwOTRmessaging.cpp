@@ -18,6 +18,7 @@
 #include <locale>
 
 #include <vector>
+#include <algorithm>
 
 extern "C" {
 	//#include "libotr/src/message.h"
@@ -31,6 +32,8 @@ static wtwOTRmessaging * p_wtwOTRmessaging = nullptr;
 
 wtwOTRmessaging *wtwOTRmessaging::instance = nullptr;
 //UINT_PTR wtwOTRmessaging::OTRL_timer_id = 0;
+
+std::vector<CString> wtwOTRmessaging::supportedNetClasses = { L"XMPP" };
 
 const OtrlMessageAppOps wtwOTRmessaging::itsOTRLops = {
 	wtwOTRmessaging::OTRL_policy_cb,
@@ -60,23 +63,23 @@ const OtrlMessageAppOps wtwOTRmessaging::itsOTRLops = {
 };
 
 WTWPLUGINFO plugInfo = {
-	sizeof(WTWPLUGINFO),									// rozmiar struktury
-	L"wtwOTRmessaging",										// nazwa wtyczki
+	sizeof(WTWPLUGINFO),										// rozmiar struktury
+	L"wtwOTRmessaging",											// nazwa wtyczki
 	L"Implementacja protoko³u Off-the-Record Messaging, "
 	L"który umo¿liwia szyfrowanie oraz uwierzytelnianie rozmów.", // opis wtyczki
-	L"(c) 2014",											// copyrights
-	L"blad3master",											// autor
-	L"blad3master@blad3master.com",							// email
-	L"http://blad3master.com",								// strona www
-	L"http://blad3master.com/download/wtwOTRmessaging.xml",	// link do pliku AU, podac 0 jezeli nie uzywamy AU
-	PLUGIN_API_VERSION,										// wersja api z ktora zostal skompilowany plug
-	MAKE_QWORD(RELEASE_VER_MAJOR, RELEASE_VER_MINOR,
-				RELEASE_VER_BUILD, RELEASE_VER_REVISION),	// wersja plug'a
-	WTW_CLASS_UTILITY,										// klasa plugin'a
-	0,														// fcja ktora wtw wywola jezeli user bedzie chcial zobaczyc about plug'a
-	L"{2195C31D-89D8-41bb-A390-622E88DB476B}",				// GUID, wymagane...
-	0,													    // zaleznosci (tablica GUID'ow, ostatnia pozycja MA byc 0)
-	0, 0, 0, 0												// zarezerwowane
+	L"(c) 2014",												// copyrights
+	L"blad3master",												// autor
+	L"blad3master@blad3master.com",								// email
+	L"http://blad3master.com",									// strona www
+	L"http://blad3master.com/download/wtwOTRmessaging.xml",		// link do pliku AU, podac 0 jezeli nie uzywamy AU
+	PLUGIN_API_VERSION,											// wersja api z ktora zostal skompilowany plug
+	MAKE_QWORD(RELEASE_VER_A_MAJOR, RELEASE_VER_B_MINOR,
+				RELEASE_VER_C_BUILD, RELEASE_VER_D_REVISION),	// wersja plug'a
+	WTW_CLASS_UTILITY,											// klasa plugin'a
+	0,															// fcja ktora wtw wywola jezeli user bedzie chcial zobaczyc about plug'a
+	L"{2195C31D-89D8-41bb-A390-622E88DB476B}",					// GUID, wymagane...
+	0,															// zaleznosci (tablica GUID'ow, ostatnia pozycja MA byc 0)
+	0, 0, 0, 0													// zarezerwowane
 };
 
 
@@ -275,7 +278,7 @@ void wtwOTRmessaging::OTRL_update_context_list_cb(void *opdata)
 	instance->itsSettingsBroker.ui_update_keylist();
 
 	// update button in chat window
-	ChatBroker::update_ui();
+	ChatBroker::update_ui(nullptr);
 }
 
 
@@ -356,7 +359,15 @@ void wtwOTRmessaging::OTRL_gone_secure_cb(void *opdata,	ConnContext *context)
 
 	instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), s);
 
-	ChatBroker::update_ui();
+	wtwContactDef ct;
+	ct.id = utf8Toutf16(context->username);
+	ct.netClass = utf8Toutf16(context->protocol);
+	ct.netId = WtwOtrContext::netIdFromAccountname(context->accountname);
+
+	// open window so that button gets refreshed
+	wtwPf->fnCall(WTW_FUNCT_OPEN_CHAT_WINDOW, reinterpret_cast<WTW_PARAM>(&ct), 0);
+
+	ChatBroker::update_ui(nullptr);
 
 	
 
@@ -540,7 +551,11 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 				peer_name);
 			instance->displayMsgInChat(wtwOtrContext, msg);
 
-			ChatBroker::update_ui();
+			wtwContactDef ct;
+			ct.id = peer_name;
+			ct.netClass = utf8Toutf16(context->protocol);
+			ct.netId = WtwOtrContext::netIdFromAccountname(context->accountname);
+			ChatBroker::update_ui(nullptr);
 		}
 		else {
 			LOG_CRITICAL(L"%s() opdata is nullptr", __FUNCTIONW__);
@@ -576,9 +591,9 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 //		break;
 	case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
 		StringCbPrintfW(msg, sizeof(msg),
-			L"<b>The following message received from '%s' was <i>not</i> encrypted: [</b>%s<b>]</b>",
+			L"<b>Wiadomoœæ otrzymana od u¿ytkownika '%s' <i>nie</i> by³a zaszyfrowana: [</b>%s<b>]</b>",
 			peer_name, utf8Toutf16(message));
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, false);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, false, true, true);
 		break;
 //	case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
 //		break;
@@ -958,6 +973,8 @@ WTW_PTR wtwOTRmessaging::onCELReceive_cb(WTW_PARAM wParam, WTW_PARAM lParam, voi
 {
 	wtwCELMessage *celMsg = (wtwCELMessage*)wParam;
 
+	addNetClassToSupported(celMsg->contactData.netClass);
+
 	if (celMsg && celMsg->pText)
 	{
 		wtw::CString *msg = ((wtw::CString*)(celMsg->pText));
@@ -975,8 +992,7 @@ WTW_PTR wtwOTRmessaging::onCELReceive_cb(WTW_PARAM wParam, WTW_PARAM lParam, voi
 
 		WtwOtrContext *wtwOtrContext = WtwOtrContext::find(celMsg->contactData);
 		if (nullptr == wtwOtrContext) {
-			LOG_INFO(L"%s() WtwOtrContext find failed", __FUNCTIONW__);
-			//return WTW_CEL_RET_OK;
+			LOG_TRACE(L"%s() WtwOtrContext find failed", __FUNCTIONW__);
 		}
 
 		char accountname[20];
@@ -997,7 +1013,10 @@ WTW_PTR wtwOTRmessaging::onCELReceive_cb(WTW_PARAM wParam, WTW_PARAM lParam, voi
 				instance->displayMsgInChat(celMsg->contactData.id, celMsg->contactData.netClass,
 					celMsg->contactData.netId, msg);
 
-				ChatBroker::update_ui();
+				// open window so that button gets refreshed
+				wtwPf->fnCall(WTW_FUNCT_OPEN_CHAT_WINDOW, reinterpret_cast<WTW_PARAM>(&celMsg->contactData), 0);
+
+				ChatBroker::update_ui(nullptr);
 			}
 			otrl_tlv_free(tlvs);
 		}
@@ -1028,6 +1047,8 @@ WTW_PTR wtwOTRmessaging::onCELBeforeSend_cb(WTW_PARAM wParam, WTW_PARAM lParam, 
 {
 	wtwCELMessage *celMsg = (wtwCELMessage*)wParam;
 
+	addNetClassToSupported(celMsg->contactData.netClass);
+
 	if (celMsg && celMsg->pText)
 	{
 		wtw::CString *msg = (wtw::CString*)(celMsg->pText);
@@ -1042,8 +1063,7 @@ WTW_PTR wtwOTRmessaging::onCELBeforeSend_cb(WTW_PARAM wParam, WTW_PARAM lParam, 
 
 		WtwOtrContext *wtwOtrContext = WtwOtrContext::find(celMsg->contactData);
 		if (nullptr == wtwOtrContext) {
-			LOG_CRITICAL(L"%s() WtwOtrContext find failed", __FUNCTIONW__);
-			//return WTW_CEL_RET_OK;
+			LOG_TRACE(L"%s() WtwOtrContext find failed", __FUNCTIONW__);
 		}
 
 		char accountname[20];
@@ -1326,6 +1346,10 @@ int wtwOTRmessaging::otrg_finish_private_conversation(wtwContactDef *contact)
 	StringCbPrintfW(s, sizeof(s), L"Zakoñczono prywatn¹ rozmowê z u¿ytkownikiem '%s'", contact->id);
 	instance->displayMsgInChat(contact->id, contact->netClass, contact->netId, s);
 
+		// open window so that button gets refreshed
+		wtwPf->fnCall(WTW_FUNCT_OPEN_CHAT_WINDOW, reinterpret_cast<WTW_PARAM>(contact), 0);
+	ChatBroker::update_ui(nullptr);
+
 	return 0;
 }
 
@@ -1333,7 +1357,7 @@ int wtwOTRmessaging::otrg_finish_private_conversation(wtwContactDef *contact)
 
 
 void wtwOTRmessaging::displayMsgInChat(const wchar_t *id, const wchar_t *netClass, int netId,
-	const wchar_t *msg, bool fontBold, bool tooltip)
+	const wchar_t *msg, bool fontBold, bool tooltip, bool archiveMsg)
 {
 	const int max_len = 2048;
 	size_t len;
@@ -1363,22 +1387,21 @@ void wtwOTRmessaging::displayMsgInChat(const wchar_t *id, const wchar_t *netClas
 		md.contactData.netId = netId;
 		md.msgMessage = decorated;
 		md.msgTime = time(NULL);
-		md.msgFlags = WTW_MESSAGE_FLAG_INCOMING | WTW_MESSAGE_FLAG_CHAT_MSG | WTW_MESSAGE_FLAG_NOHTMLESC
-			/*| WTW_MESSAGE_FLAG_NOARCHIVE - uncomment when checkbox from options will be ready*/
-			;
+		md.msgFlags = WTW_MESSAGE_FLAG_INCOMING | WTW_MESSAGE_FLAG_CHAT_MSG | WTW_MESSAGE_FLAG_NOHTMLESC |
+			((false == archiveMsg) ? WTW_MESSAGE_FLAG_NOARCHIVE : 0); // do not archive plugin messages
 		wtwPf->fnCall(WTW_CHATWND_SHOW_MESSAGE, TO_WTW_PARAM(&md), 0);
 	}
 }
 
 void wtwOTRmessaging::displayMsgInChat(const WtwOtrContext* wtwOtrContext,
-	const wchar_t *msg, bool fontBold, bool tooltip)
+	const wchar_t *msg, bool fontBold, bool tooltip, bool archiveMsg)
 {
 	if (nullptr != wtwOtrContext)
 	{
 		ASSERT(nullptr != wtwOtrContext->wtw.id);
 		ASSERT(nullptr != wtwOtrContext->wtw.netClass);
 		displayMsgInChat(wtwOtrContext->wtw.id, wtwOtrContext->wtw.netClass,
-			wtwOtrContext->wtw.netId, msg, fontBold, tooltip);
+			wtwOtrContext->wtw.netId, msg, fontBold, tooltip, archiveMsg);
 	}
 	else
 	{
@@ -1389,17 +1412,23 @@ void wtwOTRmessaging::displayMsgInChat(const WtwOtrContext* wtwOtrContext,
 
 bool wtwOTRmessaging::isNetClassSupported(const wchar_t* netClass)
 {
-	std::vector<CString> supported = { L"XMPP" };
-
-	for (std::vector<CString>::iterator it = supported.begin(); it != supported.end(); ++it)
+	for (std::vector<CString>::iterator it = supportedNetClasses.begin(); it != supportedNetClasses.end(); ++it)
 	{
-		if (!it->IsEmpty() && (0 == wcsncmp(netClass, it->operator LPCWSTR(), it->GetLength())))
+		if (!it->IsEmpty() && (0 == wcsncmp(netClass, it->operator LPCWSTR(), it->GetLength()))) {
 			return true;
+		}
 	}
-
 	return false;
 }
 
+
+void wtwOTRmessaging::addNetClassToSupported(const wchar_t *netClass)
+{
+	if (std::find(supportedNetClasses.begin(), supportedNetClasses.end(), netClass) == supportedNetClasses.end())
+	{
+		supportedNetClasses.emplace_back(netClass);
+	}
+}
 
 
 WtwOtrContext* WtwOtrContext::find(const wtwContactDef &contact)

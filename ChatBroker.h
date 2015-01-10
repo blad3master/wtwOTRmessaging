@@ -17,7 +17,10 @@ public:
 	ChatBroker(void);
 	~ChatBroker(void);
 
-	static void update_ui();
+	// if contact is not nullptr, assume is the one for which button should be displayed
+	// (no check if it is currently active)
+	// if nullptr is provided - try to guess which one is active and update button for that one
+	static void update_ui(const wtwContactDef * const activeContact);
 
 private:
 	enum POPUP_ENABLE {
@@ -31,11 +34,14 @@ private:
 	HANDLE onChatWndCreateHook;
 	HANDLE onChatWndDestroyHook;
 	HANDLE onChatWndShowHook;
+	HANDLE onChatWndMtcChangeHook;
 
-	// contact->id  =>  chat window handle
+	// makeKey(id,netClass,netId)  =>  chat window handle
 	static std::map<std::wstring, void*> chatWndList;
 
 	static std::wstring makeKey(const wchar_t *id, const wchar_t *netClass, int netId);
+	static std::wstring makeKey(const wtwContactDef *contact);
+	static bool wtwContactFromKey(const std::wstring &key, wchar_t *id, wchar_t *netClass, int *netId, size_t strLenBytes);
 
 	static WTW_PTR onChatWndCreate(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);
 	
@@ -43,7 +49,9 @@ private:
 
 	static WTW_PTR onChatWndShow(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);
 
-	static WTW_PTR moj_callback(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);
+	static WTW_PTR onChatWndMetacontactChange(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);
+
+	static WTW_PTR on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);
 
 	static int initializePrivateConversation(wtwContactDef *contact);
 

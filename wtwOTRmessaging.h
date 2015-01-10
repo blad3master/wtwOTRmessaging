@@ -170,6 +170,10 @@ private:
 	HANDLE onCELReceive_hook;
 	HANDLE onCELBeforeSend_hook;
 
+	// those NetClass'es seems to have WTW CEL hooks working and thus
+	// are eligible for OTR
+	static std::vector<CString> supportedNetClasses;
+
 
 	bool otrl_timer_set = false;
 #if USE_WINAPI_TIMERS
@@ -441,14 +445,18 @@ private:
 	static int sendRawMessageToNetwork(const char* msg);
 
 	void displayMsgInChat(const wchar_t *peer, const wchar_t *netClass, int netId,
-		const wchar_t *msg, bool fontBold = true, bool tooltip = true);
+		const wchar_t *msg, bool fontBold = true, bool tooltip = true, bool archiveMsg = false);
 
 	// this calls above displayMsgInChat()
 	void displayMsgInChat(const WtwOtrContext* wtwOtrContext,
-		const wchar_t *msg, bool fontBold = true, bool tooltip = true);
+		const wchar_t *msg, bool fontBold = true, bool tooltip = true, bool archiveMsg = false);
 
 	// return true if plugin works with give protocol
 	static bool isNetClassSupported(const wchar_t* netClass);
+
+	// add protocol to list of supported protocols (WTW NetClass'es) if
+	// Kaworu will finally support CEL hooks for other protocols
+	static void addNetClassToSupported(const wchar_t *netClass);
 };
 
 ChatBroker & wtwOTRmessaging::getChatBroker() {

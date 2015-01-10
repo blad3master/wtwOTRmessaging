@@ -8,6 +8,7 @@ extern "C" {
 }
 
 #include<algorithm>
+#include<sstream>
 #include <Strsafe.h> // StringCchPrintW()
 
 #pragma warning(disable: 4995) /*  'wsprintfA': name was marked as #pragma deprecated */
@@ -39,11 +40,13 @@ ChatBroker::ChatBroker(void)
 	onChatWndCreateHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_CREATE, ChatBroker::onChatWndCreate, this);
 	onChatWndDestroyHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_DESTROY, ChatBroker::onChatWndDestroy, this);
 	onChatWndShowHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_SHOW, ChatBroker::onChatWndShow, this);
+	onChatWndMtcChangeHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_MCT_CHANGE, ChatBroker::onChatWndMetacontactChange, this);
 }
 
 
 ChatBroker::~ChatBroker(void)
 {
+	wtwPf->evUnhook(onChatWndMtcChangeHook);
 	wtwPf->evUnhook(onChatWndShowHook);
 	wtwPf->evUnhook(onChatWndDestroyHook);
 	wtwPf->evUnhook(onChatWndCreateHook);
@@ -58,18 +61,54 @@ std::wstring ChatBroker::makeKey(const wchar_t *id, const wchar_t *netClass, int
 }
 
 
+std::wstring ChatBroker::makeKey(const wtwContactDef *contact)
+{
+	return makeKey(contact->id, contact->netClass, contact->netId);
+}
+
+bool ChatBroker::wtwContactFromKey(const std::wstring &key, wchar_t *id, wchar_t *netClass, int *netId, size_t strLenBytes)
+{
+	std::vector<std::wstring> items;
+	std::wstringstream ss(key);
+	std::wstring item;
+	while (std::getline(ss, item, L'/')) {
+		items.push_back(item);
+	}
+
+	ASSERT(3 == items.size());
+	ASSERT(id);
+	ASSERT(netClass);
+	ASSERT(netId);
+	
+	if (id && netClass && netId)
+	{
+		StringCbPrintfW(id, strLenBytes, L"%s", items[0].c_str());
+		StringCbPrintfW(netClass, strLenBytes, L"%s", items[1].c_str());
+		*netId = WtwOtrContext::netIdFromAccountname(utf16Toutf8(items[2].c_str()));
+		return true;
+	}
+	else {
+		ASSERT(0);
+	}
+
+	return false;
+}
+
+
 WTW_PTR ChatBroker::onChatWndCreate(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 {
 	// wP - wtwContactDef[], lP - * wtwChatInfo
 	wtwContactDef *p_wtwContactDef = reinterpret_cast<wtwContactDef*>(wParam);
 	wtwChatWindowInfo *p_wtwChatWindowInfo = reinterpret_cast<wtwChatWindowInfo*>(lParam);
 
-	const std::wstring &key = makeKey(p_wtwContactDef->id, p_wtwContactDef->netClass, p_wtwContactDef->netId);
-
-	if (chatWndList.find(key) != chatWndList.end()) {
-		LOG_ERROR(L"%s() wtwContactDef pointer already in the window list!", __FUNCTIONW__);
+	for (int i = 0; i < p_wtwChatWindowInfo->iContacts; ++i)
+	{
+		const std::wstring &key = makeKey(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
+		if (chatWndList.find(key) != chatWndList.end()) {
+			LOG_ERROR(L"%s() wtwContactDef pointer already in the window list!", __FUNCTIONW__);
+		}
+		chatWndList[key] = p_wtwChatWindowInfo->pWnd;
 	}
-	chatWndList[key] = p_wtwChatWindowInfo->pWnd;
 
 	return 0;
 }
@@ -81,12 +120,16 @@ WTW_PTR ChatBroker::onChatWndDestroy(WTW_PARAM wParam, WTW_PARAM lParam, void* p
 	wtwContactDef *p_wtwContactDef = reinterpret_cast<wtwContactDef*>(wParam);
 	wtwChatWindowInfo *p_wtwChatWindowInfo = reinterpret_cast<wtwChatWindowInfo*>(lParam);
 
-	const std::wstring &key = makeKey(p_wtwContactDef->id, p_wtwContactDef->netClass, p_wtwContactDef->netId);
-	auto it = chatWndList.find(key);
-	if (it != chatWndList.end()) {
-		chatWndList.erase(it);
-	} else {
-		LOG_ERROR(L"%s() wtwContactDef pointer not in window list!", __FUNCTIONW__);
+	for (int i = 0; i < p_wtwChatWindowInfo->iContacts; ++i)
+	{
+		const std::wstring &key = makeKey(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
+		auto it = chatWndList.find(key);
+		if (it != chatWndList.end()) {
+			chatWndList.erase(it);
+		}
+		else {
+			LOG_ERROR(L"%s() wtwContactDef pointer not in window list!", __FUNCTIONW__);
+		}
 	}
 
 	return 0;
@@ -99,15 +142,33 @@ WTW_PTR ChatBroker::onChatWndShow(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 	wtwContactDef *p_wtwContactDef = reinterpret_cast<wtwContactDef*>(wParam);
 	wtwChatWindowInfo *p_wtwChatWindowInfo = reinterpret_cast<wtwChatWindowInfo*>(lParam);
 
-	update_ui();
+	LOG_TRACE(L"%s() %s/%s/%d", __FUNCTIONW__,
+		p_wtwContactDef[0].id, p_wtwContactDef[0].netClass, p_wtwContactDef[0].netId);
+
+	update_ui(&p_wtwContactDef[0]); // 0 is active contact
 
 	return 0;
 }
 
 
-WTW_PTR ChatBroker::moj_callback(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
+WTW_PTR ChatBroker::onChatWndMetacontactChange(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
+{
+	wtwContactDef *p_wtwContactDef = reinterpret_cast<wtwContactDef*>(wParam);
+	wtwChatWindowInfo *p_wtwChatWindowInfo = reinterpret_cast<wtwChatWindowInfo*>(lParam);
+
+	LOG_TRACE(L"%s() %s/%s/%d", __FUNCTIONW__,
+		p_wtwContactDef[0].id, p_wtwContactDef[0].netClass, p_wtwContactDef[0].netId);
+	
+	update_ui(&p_wtwContactDef[0]); // 0 is active contact
+
+	return 0;
+}
+
+
+WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 {
 	wtwCommandCallback *p_callback = reinterpret_cast<wtwCommandCallback*>(wParam);
+	wtwContactDef *activeContact = &p_callback->contactInfo[p_callback->selectedContact]; // needed for metacontacts
 	int enabled = reinterpret_cast<int>(ptr);
 
 	HMENU menu = CreatePopupMenu();
@@ -132,18 +193,18 @@ WTW_PTR ChatBroker::moj_callback(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 		wchar_t s[500];
 	case 2:
 		StringCbPrintfW(s, sizeof(s), L"Próba odœwie¿enia prywatnej rozmowy z u¿ytkownikiem '%s'",
-			p_callback->contactInfo->id);
-		wtwOTRmessaging::instance->displayMsgInChat(p_callback->contactInfo->id,
-			p_callback->contactInfo->netClass, p_callback->contactInfo->netId, s);
+			activeContact->id);
+		wtwOTRmessaging::instance->displayMsgInChat(activeContact->id,
+			activeContact->netClass, activeContact->netId, s);
 	case 1:
-		initializePrivateConversation(p_callback->contactInfo);
+		initializePrivateConversation(activeContact);
 		break;
 	case 3:
-		finishPrivateConversation(p_callback->contactInfo);
+		finishPrivateConversation(activeContact);
 		break;
 	case 4:
 	case 5:
-		authenticatePeer(p_callback->contactInfo);
+		authenticatePeer(activeContact);
 		break;
 	case 10:
 		ShellExecute(NULL, L"open", L"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl", NULL, NULL, SW_SHOWNORMAL);
@@ -177,9 +238,10 @@ int ChatBroker::finishPrivateConversation(wtwContactDef *contact)
 }
 
 
-void ChatBroker::update_ui()
+void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 {
 	ConnContext *context = nullptr;
+	
 	int i = 0;
 	for (auto it : chatWndList)
 	{
@@ -189,6 +251,11 @@ void ChatBroker::update_ui()
 		bool match = false;
 
 		//LOG_INFO(L"%s() [%d] id %s    ptr 0x%p", __FUNCTIONW__, ++i, it.first.data(), it.second);
+
+		// update only given contact if provided
+		if ((nullptr != activeContact) && (makeKey(activeContact) != it.first))	{
+			continue;
+		}
 
 		for (context = wtwOTRmessaging::instance->getOtrlUserState()->context_root;
 			context != nullptr; context = context->next)
@@ -278,6 +345,52 @@ void ChatBroker::update_ui()
 				context->auth.secure_session_id_len);
 			*/
 		}
+		else
+		{
+			// no context/match so assume default values for buttons
+			msgstate_str = L"Nieprywatna";
+			msgstate_tooltip = L"Rozmowa nie jest bezpieczna";
+			popup = POPUP_ENABLE::START;
+		}
+
+		// make sure it is selected contact in case of metacontacts
+		// NOTE: this check MUST be ommited when activeContact is provided
+		if (nullptr == activeContact)
+		{
+			// WTW API functions to get active window/chat tab seems not to work as expected - do not use it now
+			// return  immediately here for now - maybe fix in the future?
+			return;
+
+			const int maxLen = 300;
+			wchar_t buf_id[maxLen];
+			wchar_t buf_netClass[maxLen];
+			wtwContactDef contact;
+			contact.id = buf_id;
+			contact.netClass = buf_netClass;
+			if (wtwContactFromKey(it.first, buf_id, buf_netClass, &contact.netId, maxLen))
+			{
+				wtwChatWindowAttributes attr;
+				attr.pContactData = &contact;
+				//attr.flags = WTW_WA_FLAG_IS_WINDOW_VISIBLE;
+				if (S_OK != wtwPf->fnCall(WTW_FUNCT_GET_CHATWND_ATTRIBUTES, reinterpret_cast<WTW_PARAM>(&attr), 0))
+				{
+					memset(&contact, 0, sizeof(contact));
+					attr.flags = WTW_WA_FLAG_GET_ACTIVE_WINDOW_INFO;
+					attr.flags = WTW_WA_FLAG_GET_VISIBLE_WINDOW_INFO;
+					if (S_OK != wtwPf->fnCall(WTW_FUNCT_GET_CHATWND_ATTRIBUTES, reinterpret_cast<WTW_PARAM>(&attr), 0))
+					{
+						if (makeKey(&contact) != it.first) {
+							continue; // this contact is not active - do not update
+						}
+					}
+				}
+			}
+			else
+			{
+				// failed to get contact from key - return immediately
+				return;
+			}
+		}
 
 		static bool loadPngOnce = true;
 		static const wchar_t *png_unsecure = L"unsecure";
@@ -309,7 +422,7 @@ void ChatBroker::update_ui()
 		ce.pWnd = it.second;
 		ce.hInstance = hInstance;
 		ce.itemId = ITEM_ID;
-		ce.callback = ChatBroker::moj_callback;
+		ce.callback = ChatBroker::on_WtwOtrmessaging_btn_clicked;
 		ce.cbData = reinterpret_cast<void*>(popup);
 		ce.caption = msgstate_str;
 		ce.toolTip = msgstate_tooltip;
@@ -317,6 +430,8 @@ void ChatBroker::update_ui()
 		ce.graphId = png_unsecure;
 
 		wtwPf->fnCall(WTW_CCB_FUNCT_ADD, reinterpret_cast<WTW_PARAM>(&ce), NULL);
+
+		break; // function has already updated window/tab so no sense to continue other items
 	}
 }
 
@@ -448,9 +563,14 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 			if (changed) {
 				// refresh ui
 				wtwOTRmessaging::OTRL_update_context_list_cb(nullptr);
-				
+
 				// Below should be executed in wtwOTRmessaging::OTRL_update_context_list_cb()
-				//ChatBroker::update_ui();
+				{
+						// but it is not since we cannot get current window/chat active so refresh by (re)opening the chat
+						// open window so that button gets refreshed
+						wtwPf->fnCall(WTW_FUNCT_OPEN_CHAT_WINDOW, reinterpret_cast<WTW_PARAM>(peer), 0);
+					//ChatBroker::update_ui(nullptr);
+				}
 
 				wtwOTRmessaging::OTRL_write_fingerprints_cb(nullptr);
 			}
