@@ -30,12 +30,20 @@ extern "C" {
 		*/
 	//	#include <atlapp.h>
 
+const wchar_t * const ChatBroker::GraphId_notPrivate	= L"wtwOTRmessaging/notPrivate";
+const wchar_t * const ChatBroker::GraphId_private		= L"wtwOTRmessaging/private";
+const wchar_t * const ChatBroker::GraphId_unverified	= L"wtwOTRmessaging/unverified";
+const wchar_t * const ChatBroker::GraphId_help			= L"wtwOTRmessaging/help";
+const wchar_t * const ChatBroker::GraphId_identity		= L"wtwOTRmessaging/identity";
+const wchar_t * const ChatBroker::GraphId_refresh		= L"wtwOTRmessaging/refresh";
 
 std::map<std::wstring, void*> ChatBroker::chatWndList;
 
 
 ChatBroker::ChatBroker(void)
 {
+	loadGraphics();
+
 	// When chat window is shown, execute handler
 	onChatWndCreateHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_CREATE, ChatBroker::onChatWndCreate, this);
 	onChatWndDestroyHook = wtwPf->evHook(WTW_EVENT_ON_CHATWND_DESTROY, ChatBroker::onChatWndDestroy, this);
@@ -173,20 +181,26 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 
 	HMENU menu = CreatePopupMenu();
 	InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 10, L"Pomoc");
+	setMenuItemIcon(menu, 0, GraphId_help);
 	InsertMenu(menu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, nullptr);
-	if (enabled & POPUP_ENABLE::REAUTHENTICATE)
+	if (enabled & POPUP_ENABLE::REAUTHENTICATE) {
 		InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 5, L"Ponownie potwierdŸ to¿samoœæ");
-	if (enabled & POPUP_ENABLE::AUTHENTICATE)
+		setMenuItemIcon(menu, 0, GraphId_identity);
+	}
+	if (enabled & POPUP_ENABLE::AUTHENTICATE) {
 		InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 4, L"PotwierdŸ to¿samoœæ");
+		setMenuItemIcon(menu, 0, GraphId_identity);
+	}
 	if (enabled & POPUP_ENABLE::FINISH)
 		InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 3, L"Zakoñcz prywatn¹ rozmowê");
-	if (enabled & POPUP_ENABLE::REFRESH)
+	if (enabled & POPUP_ENABLE::REFRESH) {
 		InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 2, L"Odœwie¿ prywatn¹ rozmowê");
-	if (enabled & POPUP_ENABLE::START)
+		setMenuItemIcon(menu, 0, GraphId_refresh);
+	}
+	if (enabled & POPUP_ENABLE::START) {
 		InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 1, L"Rozpocznij prywatn¹ rozmowê");
+	}
 	
-	//SetForegroundWindow(hWnd);
-
 	BOOL ret = TrackPopupMenu(menu, TPM_BOTTOMALIGN | TPM_LEFTALIGN | TPM_RETURNCMD, p_callback->pt.x, p_callback->pt.y,
 		0, p_callback->hWnd, NULL);
 	switch (ret) {
@@ -248,6 +262,7 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 		wchar_t *msgstate_str = L"wtwOTRmessaging";
 		wchar_t *msgstate_tooltip = L"wtwOTRmessaging";
 		int popup = POPUP_ENABLE::START;
+		const wchar_t *graph_id = nullptr;
 		bool match = false;
 
 		//LOG_INFO(L"%s() [%d] id %s    ptr 0x%p", __FUNCTIONW__, ++i, it.first.data(), it.second);
@@ -305,23 +320,27 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 				msgstate_str = L"Nieprywatna";
 				msgstate_tooltip = L"Rozmowa nie jest bezpieczna";
 				popup = POPUP_ENABLE::START;
+				graph_id = GraphId_notPrivate;
 				break;
 			case OTRL_MSGSTATE_ENCRYPTED:
 				if (otrl_context_is_fingerprint_trusted(context->active_fingerprint)) {
 					msgstate_str = L"Prywatna";
 					msgstate_tooltip = L"Rozmowa jest bezpieczna";
 					popup = POPUP_ENABLE::REFRESH | POPUP_ENABLE::FINISH | POPUP_ENABLE::REAUTHENTICATE;
+					graph_id = GraphId_private;
 				}
 				else {
 					msgstate_str = L"Niezweryfikowana";
 					msgstate_tooltip = L"Rozmowa mo¿e nie byæ bezpieczna\n(wymaga potwierdzenia klucza drugiej strony)";
 					popup = POPUP_ENABLE::REFRESH | POPUP_ENABLE::FINISH | POPUP_ENABLE::AUTHENTICATE;
+					graph_id = GraphId_unverified;
 				}
 				break;
 			case OTRL_MSGSTATE_FINISHED:
 				msgstate_str = L"Zakoñczona";
 				msgstate_tooltip = L"Prywatna rozmowa zakoñczona (nie jest ju¿ bezpieczna)";
 				popup = POPUP_ENABLE::START | POPUP_ENABLE::FINISH;
+				graph_id = GraphId_notPrivate;
 				break;
 			default:
 				msgstate_str = L"Status nieznany";
@@ -351,6 +370,7 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 			msgstate_str = L"Nieprywatna";
 			msgstate_tooltip = L"Rozmowa nie jest bezpieczna";
 			popup = POPUP_ENABLE::START;
+			graph_id = GraphId_notPrivate;
 		}
 
 		// make sure it is selected contact in case of metacontacts
@@ -392,24 +412,6 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 			}
 		}
 
-		static bool loadPngOnce = true;
-		static const wchar_t *png_unsecure = L"unsecure";
-		if (loadPngOnce)
-		{
-			loadPngOnce = false;
-
-			wtwGraphics wg;
-			initStruct(wg);
-			wg.graphId = png_unsecure;
-			//wg.filePath = L"icon.png";
-			wg.resourceId = MAKEINTRESOURCE(IDB_PNG1);
-			//wg.resourceId = MAKEINTRESOURCE(IDI_ICON1);
-			wg.hInst = hInstance;
-			wg.flags = 0;
-			wg.imageType = 0; // png
-			wtwPf->fnCall(WTW_GRAPH_LOAD, (WTW_PARAM)&wg, 0);
-		}
-
 		wchar_t ITEM_ID[] = L"wtwOTRmessaging_button";
 
 		wtwCommandEntry ce;
@@ -427,7 +429,7 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 		ce.caption = msgstate_str;
 		ce.toolTip = msgstate_tooltip;
 		ce.itemFlags = CHB_FLAG_CHECKED | CHB_FLAG_CHANGEICON;
-		ce.graphId = png_unsecure;
+		ce.graphId = graph_id;
 
 		wtwPf->fnCall(WTW_CCB_FUNCT_ADD, reinterpret_cast<WTW_PARAM>(&ce), NULL);
 
@@ -582,4 +584,65 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 		LOG_INFO(L"%s() Invalid dlg->doModal() result %d", __FUNCTIONW__, res);
 		break;
 	}
+}
+
+
+
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
+//#define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
+void ChatBroker::loadGraphics()
+{
+	const HINSTANCE dllInst = ((HINSTANCE)&__ImageBase);
+
+	static bool loadOnce = true;
+	if (loadOnce)
+	{
+		loadOnce = false;
+		std::vector < std::pair<const wchar_t*, const wchar_t*> > graphId2resourceId;
+		graphId2resourceId.push_back(std::make_pair(GraphId_notPrivate,		MAKEINTRESOURCE(IDB_PNG1)));
+		graphId2resourceId.push_back(std::make_pair(GraphId_private,		MAKEINTRESOURCE(IDB_PNG2)));
+		graphId2resourceId.push_back(std::make_pair(GraphId_unverified,		MAKEINTRESOURCE(IDB_PNG3)));
+		graphId2resourceId.push_back(std::make_pair(GraphId_help,			MAKEINTRESOURCE(IDB_PNG4)));
+		graphId2resourceId.push_back(std::make_pair(GraphId_identity,		MAKEINTRESOURCE(IDB_PNG5)));
+		graphId2resourceId.push_back(std::make_pair(GraphId_refresh,		MAKEINTRESOURCE(IDB_PNG6)));
+
+
+		for (const auto it : graphId2resourceId)
+		{
+			wtwGraphics wg;
+			wg.graphId = it.first;
+			wg.resourceId = it.second;
+			wg.hInst = hInstance;
+			wg.hInst = dllInst;
+			wg.imageType = 0; // png
+			if (1 != wtwPf->fnCall(WTW_GRAPH_LOAD, (WTW_PARAM)&wg, 0))
+			{
+				LOG_ERROR(L"%s() failed to load graphics (%s)", __FUNCTIONW__, it.first);
+			}
+		}
+	}
+}
+
+
+void ChatBroker::setMenuItemIcon(HMENU menu, UINT itemPos, const wchar_t *graphId)
+{
+#if 0
+	HBITMAP bitmap = (HBITMAP)LoadImage(hInstance, L"C:\\icon.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+#elif 1
+	wtwGraphics graph;
+	graph.flags = WTW_GRAPH_FLAG_GENERATE_HBITMAP;
+	graph.graphId = graphId;
+	HBITMAP bitmap = reinterpret_cast<HBITMAP>(
+		wtwPf->fnCall(WTW_GRAPH_GET_IMAGE, reinterpret_cast<WTW_PARAM>(&graph), NULL));
+#endif
+	MENUITEMINFO menuItemInfo;
+	memset(&menuItemInfo, 0, sizeof(menuItemInfo));
+	menuItemInfo.cbSize = sizeof(menuItemInfo);
+	menuItemInfo.fMask = MIIM_BITMAP;
+	menuItemInfo.hSubMenu = nullptr;
+	menuItemInfo.hbmpChecked = bitmap;
+	menuItemInfo.hbmpUnchecked = bitmap;
+	menuItemInfo.hbmpItem = bitmap;
+
+	SetMenuItemInfo(menu, itemPos, true, &menuItemInfo);
 }

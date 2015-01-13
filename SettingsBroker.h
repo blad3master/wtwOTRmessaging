@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "wtwapi/wtwOptions.h"
 #include "Logger.h"
 
@@ -55,7 +56,9 @@ private:
 		UI_SETTING_HMENU_VERIFY_KEY,
 		UI_SETTING_HMENU_FORGET_KEY,
 		UI_SETTING_HMENU_LOG_TO_FILE		= 100,
-		UI_SETTING_HMENU_ARCHIVE_MESSAGES
+		UI_SETTING_HMENU_ARCHIVE_MESSAGES,
+		UI_SETTING_HMENU_POLICY				= 1000,
+		UI_SETTING_HMENU_PROTOCOL_SELECTED,
 	};
 
 	static const wchar_t * const SETTINGS_FILE_NAME;
@@ -125,6 +128,9 @@ private:
 	// current scroll applied to ui_settingsWnd
 	static POINT ui_settingsWnd_scroll;
 
+	// help display the private key fingerprint
+	static std::map<std::wstring, std::wstring> keyHashMap;
+
 	// vector of all ui elements
 //	static std::vector<UI_ELEMENT> ui_elements;
 
@@ -133,6 +139,9 @@ private:
 
 	// Private key - full file path
 	HWND ui_privateKeyFilePath;
+
+	// Private key hash
+	HWND ui_hash;
 
 	// OTRL policy combobox
 	HWND ui_otrl_policy;

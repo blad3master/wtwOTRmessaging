@@ -761,8 +761,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon1.ico" />
-    <Image Include="bitmap1.bmp" />
-    <Image Include="..\..\..\unsecured_128.png" />
+    <Image Include="graphics\notPrivate_16.png" />
+    <Image Include="graphics\private_16.png" />
+    <Image Include="graphics\unverified_16.png" />
+    <Image Include="graphics\help_16.png" />
+    <Image Include="graphics\identity_16.png" />
+    <Image Include="graphics\refresh_16.png" />
   </ItemGroup>
 </Project>

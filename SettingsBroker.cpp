@@ -10,6 +10,8 @@ extern "C" {
 #include "OTRL/privkey.h"
 }
 
+#include <memory>
+
 
 static const wchar_t * WTWOTR_OPTIONS_PAGE_ID = L"wtwOTRmessagingOptions";
 const wchar_t * const SettingsBroker::SETTINGS_FILE_NAME = L"wtwOTRmessaging.ini";
@@ -34,6 +36,7 @@ const wchar_t * const SettingsBroker::SETTINGS_WTW_NAMES[SETTING_KEY_NUMBER_OF_K
 SettingsBroker * SettingsBroker::settingsBrokerInstance = 0;
 HWND SettingsBroker::ui_settingsWnd = 0;
 POINT SettingsBroker::ui_settingsWnd_scroll = { 0, 0 };
+std::map<std::wstring, std::wstring> SettingsBroker::keyHashMap;
 
 
 		#pragma warning(disable: 4995) /*  'wsprintfA': name was marked as #pragma deprecated */
@@ -268,20 +271,46 @@ LRESULT CALLBACK SettingsBroker::settings_class_callback(HWND hwnd,	UINT msg, WP
 	switch (msg)
 	{
 	case WM_COMMAND:
-		switch (wParam)
+		if (HIWORD(wParam) == CBN_SELCHANGE)
+			// If the user makes a selection from the list:
+			//   Send CB_GETCURSEL message to get the index of the selected list item.
+			//   Send CB_GETLBTEXT message to get the item.
+			//   Display the item in a messagebox.
 		{
-		case UI_SETTING_HMENU_1:
-			MessageBox( nullptr, L"Wcisn¹³eœ przycisk 1",L"", MB_ICONINFORMATION );
-			//settingsBrokerInstance->onGeneratePrivateKey();
-			break;
-		case UI_SETTING_HMENU_VERIFY_KEY:
-			//LOG_DEBUG(L"hot item index = %d", ListView_GetNextItem(settingsBrokerInstance->ui_keyList, -1, LVNI_SELECTED));
-			// TODO: verify key again
-			break;
-		case UI_SETTING_HMENU_FORGET_KEY:
-			// Forget the key
-			ui_forget_fingerprint();
-			break;
+			if (UI_SETTING_HMENU_PROTOCOL_SELECTED == LOWORD(wParam))
+			{
+				int ItemIndex = (int)SendMessage((HWND)lParam, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+				TCHAR  text[256];
+				(TCHAR)SendMessage((HWND)lParam, (UINT)CB_GETLBTEXT, (WPARAM)ItemIndex, (LPARAM)text);
+				//MessageBox(hwnd, (LPCWSTR)text, TEXT("Item Selected"), MB_OK);
+
+				if (settingsBrokerInstance->keyHashMap.find(text) != settingsBrokerInstance->keyHashMap.end())
+				{
+					wchar_t wcbuff[250];
+					StringCchPrintfW(wcbuff, sizeof(wcbuff), L"Odcisk klucza prywantego: %s",
+						settingsBrokerInstance->keyHashMap[text].c_str());
+					SetWindowText(settingsBrokerInstance->ui_hash, wcbuff);
+				}
+			}
+		}
+		else
+		{
+
+			switch (wParam)
+			{
+			case UI_SETTING_HMENU_1:
+				MessageBox(nullptr, L"Wcisn¹³eœ przycisk 1", L"", MB_ICONINFORMATION);
+				//settingsBrokerInstance->onGeneratePrivateKey();
+				break;
+			case UI_SETTING_HMENU_VERIFY_KEY:
+				//LOG_DEBUG(L"hot item index = %d", ListView_GetNextItem(settingsBrokerInstance->ui_keyList, -1, LVNI_SELECTED));
+				// TODO: verify key again
+				break;
+			case UI_SETTING_HMENU_FORGET_KEY:
+				// Forget the key
+				ui_forget_fingerprint();
+				break;
+			}
 		}
 		break;
 	case WM_CLOSE:
@@ -571,7 +600,7 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 		ui_otrl_policy = CreateWindowEx(0, WC_COMBOBOX, TEXT("policy"),
 			WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
 			//CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-			180, yPos, 300, 20, ui_settingsWnd, NULL, hInstance, NULL);
+			180, yPos, 300, 20, ui_settingsWnd, (HMENU)UI_SETTING_HMENU_POLICY, hInstance, NULL);
 
 		SendMessage(ui_otrl_policy, CB_ADDSTRING, (WPARAM)0, (LPARAM)TEXT("Nigdy"));
 		SendMessage(ui_otrl_policy, CB_ADDSTRING, (WPARAM)0, (LPARAM)TEXT("Rêcznie"));
@@ -611,41 +640,70 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 			120, yPos-2, 590, 20, ui_settingsWnd, NULL, hInstance, NULL);
 		SetWindowText(ui_privateKeyFilePath, getPrivateKeyFullPath());
 
-		if ( 0
-			/*
-			&& otrl_privkey_fingerprint(itsWtwOTRmessaging->getOtrlUserState(),
-							buffer, getOtrlAccountName(),
-							
-							pobierz tutaj jakos protokó³
-							
-							// utf16Toutf8(getProtocolNetClass())
-							// TODO: change constant "XMPP" string above! (display tabs for each protocol?)
-							)
-			*/
-							)
+		if ( 1 )
 		{
-			//wcscpy_s(wc_buffer, _countof(wc_buffer), L"Private key hash: ");
-			//size_t len = wcslen(wc_buffer);
-			//mbstowcs_s(0, &(wc_buffer[len]), 255 - len, buffer, 255 - len);
+			auto protocols = wtwPf->fnCall(WTW_PROTO_FUNC_ENUM, (WTW_PARAM)nullptr, -1);
+			if (protocols >= 0)
+			{
+				std::unique_ptr<wtwProtocolInfo[]> wtwProtocols(new wtwProtocolInfo[protocols]);
+				if (protocols == wtwPf->fnCall(WTW_PROTO_FUNC_ENUM, (WTW_PARAM)wtwProtocols.get(), protocols))
+				{
+					HWND protCombo = CreateWindowEx(WS_EX_STATICEDGE, L"COMBOBOX", L"MyCombo1",
+						CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE,
+						5, yPos += 30, 660, 20, ui_settingsWnd, (HMENU)UI_SETTING_HMENU_PROTOCOL_SELECTED, hInstance, NULL);
 
-			StringCchPrintfW(wc_buffer, 255, priv_key_hash, utf8Toutf16(buffer));
+					// Edit - private key hash
+					ui_hash = CreateWindowEx(0, L"EDIT", wc_buffer, WS_CHILD | WS_VISIBLE | ES_READONLY,
+						5, yPos += 30, 660, 20, ui_settingsWnd, NULL, hInstance, NULL);
+
+					keyHashMap.clear();
+					for (auto i = 0; i < protocols; ++i)
+					{
+						// skip META protocol
+						if ((1 == wtwProtocols[i].netId) &&
+							(0 == wcsncmp(L"META", wtwProtocols[i].netClass, 4)) &&
+							(0 == wcsncmp(L"- Metakontakty -", wtwProtocols[i].name, 16)))
+							continue;
+
+						std::unique_ptr<wchar_t[]> key(new wchar_t[1024]);
+						StringCbPrintfW(key.get(), 1024, L"%s [%s/%d]", wtwProtocols[i].name,
+							wtwProtocols[i].netClass, wtwProtocols[i].netId);
+
+						//LOG_CRITICAL(L"proto name '%s' netclass '%s'  netId %d",
+						//wtwProtocols[i].name, wtwProtocols[i].netClass, wtwProtocols[i].netId);
+
+						char accountname[30];
+						WtwOtrContext::accountnameFromNetId(accountname, sizeof(accountname), wtwProtocols[i].netId);
+						char hash[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
+						if (nullptr != otrl_privkey_fingerprint(itsWtwOTRmessaging->getOtrlUserState(), hash,
+							accountname, utf16Toutf8(wtwProtocols[i].netClass)))
+						{
+							keyHashMap[key.get()] = utf8Toutf16(hash);
+						}
+						else
+						{
+							keyHashMap[key.get()] = L"BRAK KLUCZA";
+						}
+						SendMessage(protCombo, (UINT)CB_ADDSTRING, (WPARAM)0, (LPARAM)key.get());
+					}
+					SendMessage(protCombo, (UINT)CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
+					SendMessage(ui_settingsWnd, WM_COMMAND,
+						CBN_SELCHANGE << 16 | UI_SETTING_HMENU_PROTOCOL_SELECTED, (LPARAM)protCombo);
+				}
+				else
+				{
+					LOG_CRITICAL(L"%s() failed to enumerate protocols INSIDE %lld", __FUNCTIONW__, protocols);
+				}
+			}
+			else
+			{
+				LOG_CRITICAL(L"%s() failed to enumerate protocols (error %lld)", protocols);
+			}
 		}
-		else
-		{
-			StringCbPrintfW(wc_buffer, 255 * sizeof(wchar_t), L"No private key hash for %s@%s",
-				utf8Toutf16("noName"),
-				utf8Toutf16("noProtocol"));
-			
-			//wcscpy_s(wc_buffer, _countof(wc_buffer), L"No private key hash");
-		}
-		// Edit - private key hash
-		HWND hash = CreateWindowEx(0, L"EDIT", NULL, WS_CHILD | WS_VISIBLE | ES_READONLY,
-			5, yPos+=30, 510, 20, ui_settingsWnd, NULL, hInstance, NULL);
-		SetWindowText(hash, wc_buffer);
 
 		// Button
-		CreateWindowW(L"BUTTON", generate_priv_key, WS_CHILD | WS_VISIBLE | WS_DISABLED,
-			5, yPos+=25, 190, 25, ui_settingsWnd, (HMENU)1, hInstance, NULL);
+		//CreateWindowW(L"BUTTON", generate_priv_key, WS_CHILD | WS_VISIBLE | WS_DISABLED,
+		//	5, yPos+=25, 190, 25, ui_settingsWnd, (HMENU)1, hInstance, NULL);
 
 
 		// GroupBox
@@ -1145,13 +1203,17 @@ void SettingsBroker::ui_update_keylist()
 			char hash[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
 			otrl_privkey_hash_to_human(hash, fingerprint->fingerprint);
 
+			char accountname[300];
+			_snprintf(accountname, sizeof(accountname), "%s/%d",
+				context->protocol, WtwOtrContext::netIdFromAccountname(context->accountname));
+
 			LVITEM   lv = { 0 };
 			lv.iItem = index;
 			ListView_InsertItem(ui_keyList, &lv);
 			ListView_SetItemText(ui_keyList, index, 0, (wchar_t*)utf8Toutf16(context->username));
 			ListView_SetItemText(ui_keyList, index, 1, (otrl_context_is_fingerprint_trusted(fingerprint)) ? L"TAK" : L"NIE");
 			ListView_SetItemText(ui_keyList, index, 2, (wchar_t*)utf8Toutf16(hash));
-			ListView_SetItemText(ui_keyList, index, 3, (wchar_t*)utf8Toutf16(context->accountname));
+			ListView_SetItemText(ui_keyList, index, 3, (wchar_t*)utf8Toutf16(accountname));
 			keyList_fingerprints.push_back(fingerprint);
 			++index;
 

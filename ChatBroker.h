@@ -23,6 +23,14 @@ public:
 	static void update_ui(const wtwContactDef * const activeContact);
 
 private:
+
+	static const wchar_t * const GraphId_notPrivate;
+	static const wchar_t * const GraphId_private;
+	static const wchar_t * const GraphId_unverified;
+	static const wchar_t * const GraphId_help;
+	static const wchar_t * const GraphId_identity;
+	static const wchar_t * const GraphId_refresh;
+
 	enum POPUP_ENABLE {
 		START			= 0x01,
 		REFRESH			= 0x02,
@@ -58,4 +66,8 @@ private:
 	static int finishPrivateConversation(wtwContactDef *contact);
 
 	static void authenticatePeer(wtwContactDef *contact);
+
+	static void loadGraphics();
+
+	static void setMenuItemIcon(HMENU menu, UINT itemPos, const wchar_t *graphId);
 };

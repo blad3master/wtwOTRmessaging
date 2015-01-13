@@ -512,32 +512,38 @@ void wtwOTRmessaging::OTRL_handle_smp_event_cb(void *opdata, OtrlSMPEvent smp_ev
 void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnContext *context,
 												const char *message, gcry_error_t err)
 {
-	//LOG_ERROR(L"%s() not implemented", utf8Toutf16(__FUNCTION__));
+	if (nullptr == context)
+	{
+		LOG_CRITICAL(L"%s() context is nullptr for event %d", __FUNCTIONW__, (int)msg_event);
+		return;
+	}
 
 	wchar_t msg[2048];
 	const wchar_t *peer_name = utf8Toutf16(context->username);
+	WtwOtrContext *wtwOtrContext = reinterpret_cast<WtwOtrContext*>(opdata);
+
+	if (nullptr == wtwOtrContext)
+	{
+		LOG_CRITICAL(L"%s() opdata is nullptr for event %d", __FUNCTIONW__, (int)msg_event);
+		return;
+	}
 
 	switch (msg_event)
 	{
-	case OTRL_MSGEVENT_ENCRYPTION_REQUIRED:
-		StringCbPrintfW(msg, sizeof(msg),
-			L"Próbowa³eœ wys³aæ niezaszyfrowan¹ wiadomoœæ do '%s'",
-			peer_name);		
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
-
-		/*display_otr_message_or_notify(opdata, context->accountname,
-			context->protocol, context->username, _("Attempting to"
-			" start a private conversation..."), 1, OTRL_NOTIFY_WARNING,
-			_("OTR Policy Violation"), buf,
-			_("Unencrypted messages to this recipient are "
-			"not allowed.  Attempting to start a private "
-			"conversation.\n\nYour message will be "
-			"retransmitted when the private conversation "
-			"starts."));
-		*/
+	case OTRL_MSGEVENT_NONE:
+		LOG_TRACE(L"%s() OTRL_MSGEVENT_NONE", __FUNCTIONW__);
 		break;
-//	case OTRL_MSGEVENT_ENCRYPTION_ERROR:
-//		break;
+	case OTRL_MSGEVENT_ENCRYPTION_REQUIRED:
+		StringCbPrintfW(msg, sizeof(msg), L"Próbowa³eœ wys³aæ niezaszyfrowan¹ wiadomoœæ do u¿ytkownika '%s'. "
+			L"Poniewa¿ wybrana polityka szyfrowania wymaga szyfrowania, zostanie podjêta próba nawi¹zania "
+			L"bezpiecznego po³¹czenia (kiedy to siê stanie Twoja wiadomoœæ zostanie wys³ana).", peer_name);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
+	case OTRL_MSGEVENT_ENCRYPTION_ERROR:
+		StringCbPrintfW(msg, sizeof(msg), L"Podczas szyfrowania Twojej wiadomoœci wyst¹pi³ b³¹d. "
+			L"Wiadomoœæ nie zosta³a wys³ana.");
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
 	case OTRL_MSGEVENT_CONNECTION_ENDED:
 	{
 		WtwOtrContext *wtwOtrContext = reinterpret_cast<WtwOtrContext*>(opdata);
@@ -546,7 +552,8 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 			wtwOtrContext->otr.privateConverstationEnded = true; // do not let the message out
 
 			StringCbPrintfW(msg, sizeof(msg),
-				L"Wiadomoœæ do u¿ytkownika '%s' NIE zosta³a wys³ana. "
+				L"Wiadomoœæ do u¿ytkownika '%s' NIE zosta³a wys³ana poniewa¿ "
+				L"osoba z któr¹ rozmawiasz zakoñczy³a prywatne po³¹czenie. "
 				L"Zakoñcz prywatn¹ rozmowê lub ponowniê j¹ rozpocznij.",
 				peer_name);
 			instance->displayMsgInChat(wtwOtrContext, msg);
@@ -562,22 +569,55 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 		}
 		break;
 	}
-//	case OTRL_MSGEVENT_SETUP_ERROR:
-//		break;
-//	case OTRL_MSGEVENT_MSG_REFLECTED:
-//		break;
-//	case OTRL_MSGEVENT_MSG_RESENT:
-//		break;
-//	case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
-//		break;
-//	case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
-//		break;
-//	case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
-//		break;
+	case OTRL_MSGEVENT_SETUP_ERROR:
+		if (!err) {
+			err = GPG_ERR_INV_VALUE;
+		}
+		switch (gcry_err_code(err)) {
+		case GPG_ERR_INV_VALUE:
+			StringCbPrintfW(msg, sizeof(msg), L"Wyst¹pi³ b³¹d podczas próby nawi¹zania prywatnego po³¹czenia "
+				L"(otrzymano niepoprawn¹ wiadomoœæ).");
+			break;
+		default:
+			StringCbPrintfW(msg, sizeof(msg), L"Wyst¹pi³ b³¹d podczas próby nawi¹zania prywatnego po³¹czenia "
+				L"(%s).", utf8Toutf16(gcry_strerror(err)));
+			break;
+		}
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
+	case OTRL_MSGEVENT_MSG_REFLECTED:
+		StringCbPrintfW(msg, sizeof(msg), L"Otrzymujesz spowrotem swoje wiadomoœci OTR. Albo rozmawiasz sam "
+			L"ze sob¹, albo ktoœ odsy³a Twoje wiadomoœci do Ciebie!");
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
+	case OTRL_MSGEVENT_MSG_RESENT:
+		StringCbPrintfW(msg, sizeof(msg), L"Ostatnia wiadomoœæ wys³ana do '%s' zosta³a zretransmitowana.",
+			peer_name);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
+	case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
+		StringCbPrintfW(msg, sizeof(msg),
+			L"Otrzymano zaszyfrowan¹ wiadomoœæ od u¿ytkownika %s, jednak nie mo¿na jej odczytaæ "
+			L"poniewa¿ <u>nie prowadzisz ju¿ prywatnej</u> rozmowy. Jeœli zamiezasz kontynuowaæ rozmowê "
+			L"proszê ponownie <u>rozpocz¹æ prywatn¹ rozmowê</u>.", peer_name);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
+	case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
+		StringCbPrintfW(msg, sizeof(msg),
+			L"Otrzymano wiadomoœæ od u¿ytkownika %s, której nie mo¿na odczytaæ.", peer_name);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
+	case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
+		StringCbPrintfW(msg, sizeof(msg),
+			L"Otrzymano uszkodzon¹ wiadomoœæ od u¿ytkownika %s.", peer_name);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
 	case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
 		// Do not print information about hearbit since it is "detected"
 		// when the peer finishes private conversation - the message might
 		// be confusing for the user :)
+		LOG_TRACE(L"%s() heartbeat recevied from %s/%s/%d", __FUNCTIONW__,
+			wtwOtrContext->wtw.id, wtwOtrContext->wtw.netClass, wtwOtrContext->wtw.netId);
 		/*
 		StringCbPrintfW(msg, sizeof(msg),
 			L"Otrzymano heartbeat od u¿ytkownika '%s'",
@@ -586,205 +626,33 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 		*/
 		break;
 	case OTRL_MSGEVENT_LOG_HEARTBEAT_SENT:
+		LOG_TRACE(L"%s() heartbeat sent to %s/%s/%d", __FUNCTIONW__,
+			wtwOtrContext->wtw.id, wtwOtrContext->wtw.netClass, wtwOtrContext->wtw.netId);
 		break;
-//	case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
-//		break;
+	case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
+		StringCbPrintfW(msg, sizeof(msg), L"Wyst¹pi³ b³¹d (%s).", utf8Toutf16(message));
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		break;
 	case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
 		StringCbPrintfW(msg, sizeof(msg),
 			L"<b>Wiadomoœæ otrzymana od u¿ytkownika '%s' <i>nie</i> by³a zaszyfrowana: [</b>%s<b>]</b>",
 			peer_name, utf8Toutf16(message));
 		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, false, true, true);
 		break;
-//	case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
-//		break;
-//	case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
-//		break;
-
-/*
-	case 100:
-		StringCbPrintfW(msg, sizeof(msg),
-			L"Prywatna rozmowa z u¿ytkownikiem '%s' zosta³a zakoñczona",
-			peer_name);
-		instance->displayMsgInChat(peer_name, msg);
-
-		ChatBroker::update_ui();
-		break;
-*/
-
-	default:
-		LOG_WARN(L"%s() - handling of event %d is not yet implemented",
-			utf8Toutf16(__FUNCTION__), (int)msg_event);
-	}
-	
-
-/*	PIDGIN plugin implementation
-
-	PurpleConversation *conv = NULL;
-    gchar *buf;
-    OtrlMessageEvent * last_msg_event;
-
-    if (!context) return;
-
-    conv = otrg_plugin_context_to_conv(context, 1);
-    last_msg_event = g_hash_table_lookup(conv->data, "otr-last_msg_event");
-
-    switch (msg_event)
-    {
-	case OTRL_MSGEVENT_NONE:
-	    break;
-	case OTRL_MSGEVENT_ENCRYPTION_REQUIRED:
-	    buf = g_strdup_printf(_("You attempted to send an "
-		    "unencrypted message to %s"), context->username);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, _("Attempting to"
-		    " start a private conversation..."), 1, OTRL_NOTIFY_WARNING,
-		    _("OTR Policy Violation"), buf,
-		    _("Unencrypted messages to this recipient are "
-		    "not allowed.  Attempting to start a private "
-		    "conversation.\n\nYour message will be "
-		    "retransmitted when the private conversation "
-		    "starts."));
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_ENCRYPTION_ERROR:
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, _("An error occurred "
-		    "when encrypting your message.  The message was not sent."),
-		    1, OTRL_NOTIFY_ERROR, _("Error encrypting message"),
-		    _("An error occurred when encrypting your message"),
-		    _("The message was not sent."));
-	    break;
-	case OTRL_MSGEVENT_CONNECTION_ENDED:
-	    buf = g_strdup_printf(_("%s has already closed his/her private "
-			"connection to you"), context->username);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, _("Your message "
-		    "was not sent.  Either end your private conversation, "
-		    "or restart it."), 1, OTRL_NOTIFY_ERROR,
-		    _("Private connection closed"), buf,
-		    _("Your message was not sent.  Either close your "
-		    "private connection to him, or refresh it."));
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_SETUP_ERROR:
-	    if (!err) {
-		err = GPG_ERR_INV_VALUE;
-	    }
-	    switch(gcry_err_code(err)) {
-		case GPG_ERR_INV_VALUE:
-		    buf = g_strdup(_("Error setting up private "
-			    "conversation: Malformed message received"));
-		    break;
-		default:
-		    buf = g_strdup_printf(_("Error setting up private "
-			    "conversation: %s"), gcry_strerror(err));
-		    break;
-	    }
-
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, buf, 1,
-		    OTRL_NOTIFY_ERROR, _("OTR Error"), buf, NULL);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_MSG_REFLECTED:
-	    display_otr_message_or_notify(opdata,
-		    context->accountname, context->protocol,
-		    context->username,
-		    _("We are receiving our own OTR messages.  "
-		    "You are either trying to talk to yourself, "
-		    "or someone is reflecting your messages back "
-		    "at you."), 1, OTRL_NOTIFY_ERROR,
-		    _("OTR Error"), _("We are receiving our own OTR messages."),
-		    _("You are either trying to talk to yourself, "
-		    "or someone is reflecting your messages back "
-		    "at you."));
-	    break;
-	case OTRL_MSGEVENT_MSG_RESENT:
-	    buf = g_strdup_printf(_("<b>The last message to %s was resent."
-		    "</b>"), context->username);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, buf, 1,
-		    OTRL_NOTIFY_INFO, _("Message resent"), buf, NULL);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
-	    buf = g_strdup_printf(_("<b>The encrypted message received from "
-		    "%s is unreadable, as you are not currently communicating "
-		    "privately.</b>"), context->username);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, buf, 1,
-		    OTRL_NOTIFY_INFO, _("Unreadable message"), buf, NULL);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
-	    buf = g_strdup_printf(_("We received an unreadable "
-		    "encrypted message from %s."), context->username);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, buf, 1,
-		    OTRL_NOTIFY_ERROR, _("OTR Error"), buf, NULL);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
-	    buf = g_strdup_printf(_("We received a malformed data "
-		    "message from %s."), context->username);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, buf, 1,
-		    OTRL_NOTIFY_ERROR, _("OTR Error"), buf, NULL);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
-	    buf = g_strdup_printf(_("Heartbeat received from %s.\n"),
-		    context->username);
-	    log_message(opdata, buf);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_LOG_HEARTBEAT_SENT:
-	    buf = g_strdup_printf(_("Heartbeat sent to %s.\n"),
-		    context->username);
-	    log_message(opdata, buf);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, message, 1,
-		    OTRL_NOTIFY_ERROR, _("OTR Error"), message, NULL);
-	    break;
-	case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
-	    buf = g_strdup_printf(_("<b>The following message received "
-		    "from %s was <i>not</i> encrypted: [</b>%s<b>]</b>"),
-		    context->username, message);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, buf, 1,
-		    OTRL_NOTIFY_INFO, _("Received unencrypted message"),
-		    buf, NULL);
-	    emit_msg_received(context, buf);
-	    g_free(buf);
-	    break;
 	case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
-	    buf = g_strdup_printf(_("Unrecognized OTR message received "
-		    "from %s.\n"), context->username);
-	    log_message(opdata, buf);
-	    g_free(buf);
-	    break;
-	case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
-	    if (*last_msg_event == msg_event) {
+		LOG_CRITICAL(L"%s() Otrzymano nieznan¹ wiadomoœæ OTR od u¿ytkownika %s", __FUNCTIONW__, peer_name);
 		break;
-	    }
-	    buf = g_strdup_printf(_("%s has sent a message intended for a "
-		    "different session. If you are logged in multiple times, "
-		    "another session may have received the message."),
-		    context->username);
-	    display_otr_message_or_notify(opdata, context->accountname,
-		    context->protocol, context->username, buf, 1,
-		    OTRL_NOTIFY_INFO, _("Received message for a different "
-		    "session"), buf, NULL);
-	    g_free(buf);
-	    break;
-    }
-
-    *last_msg_event = msg_event;
-*/
-
+	case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
+		//if (*last_msg_event == msg_event) {
+		//	break;
+		//}
+		StringCbPrintfW(msg, sizeof(msg), L"%s wys³a³ wiadomoœæ, która by³a adresowana do innej sesji. Jeœli jesteœ "
+			L"zalogowany z wielu urzadzeñ, wiadomoœæ ta mog³a trafiæ na jedno z nich.",	peer_name);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, false, true, true);
+		break;
+	default:
+		LOG_WARN(L"%s() - handling of event %d is not yet implemented", __FUNCTIONW__, (int)msg_event);
+	}
 }
 
 
@@ -1375,7 +1243,7 @@ void wtwOTRmessaging::displayMsgInChat(const wchar_t *id, const wchar_t *netClas
 	{
 		wchar_t decorated[2048 + 512];
 		StringCbPrintfW(decorated, sizeof(decorated),
-			L"<span %s %s> %s </span>",
+			L"<span %s %s>[wtwOTRmessaging] %s</span>",
 			(fontBold) ? L"style=\"font-weight:bold;\"" : L"",
 			(tooltip) ? L"title=\"Wiadomoœæ od wtyczki wtwOTRmessaging\"" : L"",
 			msg);
@@ -1387,7 +1255,10 @@ void wtwOTRmessaging::displayMsgInChat(const wchar_t *id, const wchar_t *netClas
 		md.contactData.netId = netId;
 		md.msgMessage = decorated;
 		md.msgTime = time(NULL);
-		md.msgFlags = WTW_MESSAGE_FLAG_INCOMING | WTW_MESSAGE_FLAG_CHAT_MSG | WTW_MESSAGE_FLAG_NOHTMLESC |
+		md.msgFlags = WTW_MESSAGE_FLAG_INCOMING |
+						WTW_MESSAGE_FLAG_CHAT_MSG |
+						WTW_MESSAGE_FLAG_NOTHEME |
+						WTW_MESSAGE_FLAG_NOHTMLESC |
 			((false == archiveMsg) ? WTW_MESSAGE_FLAG_NOARCHIVE : 0); // do not archive plugin messages
 		wtwPf->fnCall(WTW_CHATWND_SHOW_MESSAGE, TO_WTW_PARAM(&md), 0);
 	}
