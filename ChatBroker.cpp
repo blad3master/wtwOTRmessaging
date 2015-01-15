@@ -30,6 +30,8 @@ extern "C" {
 		*/
 	//	#include <atlapp.h>
 
+const wchar_t * const ChatBroker::OTR_BUTTON_ITEM_ID	= L"wtwOTRmessaging_button";
+
 const wchar_t * const ChatBroker::GraphId_notPrivate	= L"wtwOTRmessaging/notPrivate";
 const wchar_t * const ChatBroker::GraphId_private		= L"wtwOTRmessaging/private";
 const wchar_t * const ChatBroker::GraphId_unverified	= L"wtwOTRmessaging/unverified";
@@ -58,6 +60,8 @@ ChatBroker::~ChatBroker(void)
 	wtwPf->evUnhook(onChatWndShowHook);
 	wtwPf->evUnhook(onChatWndDestroyHook);
 	wtwPf->evUnhook(onChatWndCreateHook);
+
+	removeAllButtons();
 }
 
 
@@ -114,6 +118,7 @@ WTW_PTR ChatBroker::onChatWndCreate(WTW_PARAM wParam, WTW_PARAM lParam, void* pt
 		const std::wstring &key = makeKey(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
 		if (chatWndList.find(key) != chatWndList.end()) {
 			LOG_ERROR(L"%s() wtwContactDef pointer already in the window list!", __FUNCTIONW__);
+			continue;
 		}
 		chatWndList[key] = p_wtwChatWindowInfo->pWnd;
 	}
@@ -152,6 +157,19 @@ WTW_PTR ChatBroker::onChatWndShow(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 
 	LOG_TRACE(L"%s() %s/%s/%d", __FUNCTIONW__,
 		p_wtwContactDef[0].id, p_wtwContactDef[0].netClass, p_wtwContactDef[0].netId);
+
+	// it may happen that chat had already been opened when the plugin was loaded
+	// so check every time it is shown that all contats (from meta) are present in the chat window list
+	{
+		for (int i = 0; i < p_wtwChatWindowInfo->iContacts; ++i)
+		{
+			const std::wstring &key = makeKey(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
+			if (chatWndList.find(key) != chatWndList.end()) {
+				continue;
+			}
+			chatWndList[key] = p_wtwChatWindowInfo->pWnd;
+		}
+	}
 
 	update_ui(&p_wtwContactDef[0]); // 0 is active contact
 
@@ -209,7 +227,7 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 		StringCbPrintfW(s, sizeof(s), L"Próba odœwie¿enia prywatnej rozmowy z u¿ytkownikiem '%s'",
 			activeContact->id);
 		wtwOTRmessaging::instance->displayMsgInChat(activeContact->id,
-			activeContact->netClass, activeContact->netId, s);
+			activeContact->netClass, activeContact->netId, s, WTW_MESSAGE_FLAG_INFO);
 	case 1:
 		initializePrivateConversation(activeContact);
 		break;
@@ -221,7 +239,7 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 		authenticatePeer(activeContact);
 		break;
 	case 10:
-		ShellExecute(NULL, L"open", L"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl", NULL, NULL, SW_SHOWNORMAL);
+		ShellExecute(NULL, L"open", L"http://blad3master.com/pl/wtwotrmessaging#faq", NULL, NULL, SW_SHOWNORMAL);
 		break;
 	default:
 		//MessageBox(NULL, L"Default", L"MENU", MB_OK);
@@ -412,18 +430,16 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 			}
 		}
 
-		wchar_t ITEM_ID[] = L"wtwOTRmessaging_button";
-
 		wtwCommandEntry ce;
 		initStruct(ce);
 		ce.pWnd = it.second;
-		ce.itemId = ITEM_ID;
+		ce.itemId = OTR_BUTTON_ITEM_ID;
 		wtwPf->fnCall(WTW_CCB_FUNCT_DEL, reinterpret_cast<WTW_PARAM>(&ce), NULL);
 
 		initStruct(ce);
 		ce.pWnd = it.second;
 		ce.hInstance = hInstance;
-		ce.itemId = ITEM_ID;
+		ce.itemId = OTR_BUTTON_ITEM_ID;
 		ce.callback = ChatBroker::on_WtwOtrmessaging_btn_clicked;
 		ce.cbData = reinterpret_cast<void*>(popup);
 		ce.caption = msgstate_str;
@@ -548,7 +564,8 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 					otrl_context_set_trust(context->active_fingerprint, nullptr);
 					wtwOTRmessaging::instance->displayMsgInChat(peer->id, peer->netClass, peer->netId,
 						L"Status aktualnej rozmowy: "
-						L"<a href=\"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl\">Niezweryfikowana</a>");
+						L"<a href=\"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl\">Niezweryfikowana</a>",
+						WTW_MESSAGE_FLAG_INFO);
 				}
 			}
 			else if (1 == dlg.approval) {
@@ -557,7 +574,8 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 					otrl_context_set_trust(context->active_fingerprint, "trusted");
 					wtwOTRmessaging::instance->displayMsgInChat(peer->id, peer->netClass, peer->netId,
 						L"Status aktualnej rozmowy: "
-						L"<a href=\"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl\">Prywatna</a>");
+						L"<a href=\"https://otr.cypherpunks.ca/help/4.0.0/levels.php?lang=pl\">Prywatna</a>",
+						WTW_MESSAGE_FLAG_INFO);
 				}
 			}
 
@@ -598,26 +616,61 @@ void ChatBroker::loadGraphics()
 	if (loadOnce)
 	{
 		loadOnce = false;
-		std::vector < std::pair<const wchar_t*, const wchar_t*> > graphId2resourceId;
-		graphId2resourceId.push_back(std::make_pair(GraphId_notPrivate,		MAKEINTRESOURCE(IDB_PNG1)));
-		graphId2resourceId.push_back(std::make_pair(GraphId_private,		MAKEINTRESOURCE(IDB_PNG2)));
-		graphId2resourceId.push_back(std::make_pair(GraphId_unverified,		MAKEINTRESOURCE(IDB_PNG3)));
-		graphId2resourceId.push_back(std::make_pair(GraphId_help,			MAKEINTRESOURCE(IDB_PNG4)));
-		graphId2resourceId.push_back(std::make_pair(GraphId_identity,		MAKEINTRESOURCE(IDB_PNG5)));
-		graphId2resourceId.push_back(std::make_pair(GraphId_refresh,		MAKEINTRESOURCE(IDB_PNG6)));
-
+		std::vector < std::pair<const wchar_t*, std::pair<const wchar_t*,const wchar_t*> > > graphId2resourceId;
+		graphId2resourceId.push_back(std::make_pair(GraphId_notPrivate,
+			std::make_pair(MAKEINTRESOURCE(IDB_PNG1), L"notPrivate.png")));
+		graphId2resourceId.push_back(std::make_pair(GraphId_private,
+			std::make_pair(MAKEINTRESOURCE(IDB_PNG2),L"private.png")));
+		graphId2resourceId.push_back(std::make_pair(GraphId_unverified,
+			std::make_pair(MAKEINTRESOURCE(IDB_PNG3), L"unverified.png")));
+		graphId2resourceId.push_back(std::make_pair(GraphId_help,
+			std::make_pair(MAKEINTRESOURCE(IDB_PNG4), L"help.png")));
+		graphId2resourceId.push_back(std::make_pair(GraphId_identity,
+			std::make_pair(MAKEINTRESOURCE(IDB_PNG5), L"identity.png")));
+		graphId2resourceId.push_back(std::make_pair(GraphId_refresh,
+			std::make_pair(MAKEINTRESOURCE(IDB_PNG6), L"refresh.png")));
 
 		for (const auto it : graphId2resourceId)
 		{
-			wtwGraphics wg;
-			wg.graphId = it.first;
-			wg.resourceId = it.second;
-			wg.hInst = hInstance;
-			wg.hInst = dllInst;
-			wg.imageType = 0; // png
-			if (1 != wtwPf->fnCall(WTW_GRAPH_LOAD, (WTW_PARAM)&wg, 0))
+			bool loadFromResources = true;
+			wchar_t filePath[MAX_PATH];
+
+			// it may happen that graphic is already loaded (when plugin is unloaded & loaded again)
+			// since there is no "graphRemove" function in WTW API, do below check (otherwise, WTW_GRAPH_LOAD would fail)
+			wtwGraphics wgCheck;
+			wgCheck.graphId = it.first;
+			wgCheck.flags = WTW_GRAPH_FLAG_GENERATE_HBITMAP;
+			if (0 != wtwPf->fnCall(WTW_GRAPH_GET_IMAGE, (WTW_PARAM)&wgCheck, 0)) {
+				continue;
+			}
+
+			StringCchPrintf(filePath, sizeof(filePath), L"%s%s\\%s",
+				SettingsBroker::settingsBrokerInstance->getSettingsDataDir(),
+				CString(L"wtwOTRmessaging"), it.second.second);
+
+			if (0 == _waccess_s(filePath, 0))
 			{
-				LOG_ERROR(L"%s() failed to load graphics (%s)", __FUNCTIONW__, it.first);
+				wtwGraphics wgf;
+				wgf.filePath = filePath;
+				wgf.graphId = it.first;
+				wgf.imageType = 0; // png
+				if (1 == wtwPf->fnCall(WTW_GRAPH_LOAD, (WTW_PARAM)&wgf, 0))
+				{
+					loadFromResources = false;
+				}
+			}
+
+			if (loadFromResources)
+			{
+				wtwGraphics wg;
+				wg.graphId = it.first;
+				wg.resourceId = it.second.first;
+				wg.hInst = dllInst;
+				wg.imageType = 0; // png
+				if (1 != wtwPf->fnCall(WTW_GRAPH_LOAD, (WTW_PARAM)&wg, 0))
+				{
+					LOG_ERROR(L"%s() failed to load graphics (%s)", __FUNCTIONW__, it.first);
+				}
 			}
 		}
 	}
@@ -645,4 +698,24 @@ void ChatBroker::setMenuItemIcon(HMENU menu, UINT itemPos, const wchar_t *graphI
 	menuItemInfo.hbmpItem = bitmap;
 
 	SetMenuItemInfo(menu, itemPos, true, &menuItemInfo);
+}
+
+
+extern DWORD pluginUnload_callReason;
+void ChatBroker::removeAllButtons()
+{
+	// call reason 4 means WTW exit (WTW_CCB_FUNCT_DEL crashes there :P)
+	if (4 != pluginUnload_callReason)
+	{
+		for (auto it : chatWndList)
+		{
+			wtwCommandEntry ce;
+			initStruct(ce);
+			ce.pWnd = it.second;
+			ce.itemId = OTR_BUTTON_ITEM_ID;
+			wtwPf->fnCall(WTW_CCB_FUNCT_DEL, reinterpret_cast<WTW_PARAM>(&ce), NULL);
+		}
+
+		chatWndList.clear();
+	}
 }

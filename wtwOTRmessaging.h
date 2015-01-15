@@ -153,9 +153,9 @@ private:
 
 	Logger logger;
 
-	ChatBroker itsChatBroker;
-
 	SettingsBroker itsSettingsBroker;
+
+	ChatBroker itsChatBroker;
 
 	// OTR Library
 	OtrlUserState itsOtrlUserState = nullptr;
@@ -445,11 +445,11 @@ private:
 	static int sendRawMessageToNetwork(const char* msg);
 
 	void displayMsgInChat(const wchar_t *peer, const wchar_t *netClass, int netId,
-		const wchar_t *msg, bool fontBold = true, bool tooltip = true, bool archiveMsg = false);
+		const wchar_t *msg, DWORD wtwMsgFlags, bool fontBold = true, bool tooltip = true, bool archiveMsg = false);
 
 	// this calls above displayMsgInChat()
 	void displayMsgInChat(const WtwOtrContext* wtwOtrContext,
-		const wchar_t *msg, bool fontBold = true, bool tooltip = true, bool archiveMsg = false);
+		const wchar_t *msg, DWORD wtwMsgFlags, bool fontBold = true, bool tooltip = true, bool archiveMsg = false);
 
 	// return true if plugin works with give protocol
 	static bool isNetClassSupported(const wchar_t* netClass);

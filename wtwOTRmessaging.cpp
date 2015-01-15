@@ -33,6 +33,9 @@ static wtwOTRmessaging * p_wtwOTRmessaging = nullptr;
 wtwOTRmessaging *wtwOTRmessaging::instance = nullptr;
 //UINT_PTR wtwOTRmessaging::OTRL_timer_id = 0;
 
+// this variable helps to see distinguish WTW_exit from just plugin unload (from options)
+DWORD pluginUnload_callReason = 0;
+
 std::vector<CString> wtwOTRmessaging::supportedNetClasses = { L"XMPP" };
 
 const OtrlMessageAppOps wtwOTRmessaging::itsOTRLops = {
@@ -104,8 +107,9 @@ WTW_PLUGIN_API_ENTRY(int) pluginLoad(DWORD /*callReason*/, WTWFUNCTIONS* f)
 }
 
 
-WTW_PLUGIN_API_ENTRY(int) pluginUnload(DWORD /*callReason*/)
+WTW_PLUGIN_API_ENTRY(int) pluginUnload(DWORD callReason)
 {
+	pluginUnload_callReason = callReason;
 	if (nullptr != p_wtwOTRmessaging)
 		delete p_wtwOTRmessaging;
 
@@ -294,7 +298,7 @@ void wtwOTRmessaging::OTRL_new_fingerprint_cb(void *opdata, OtrlUserState us,
 		utf8Toutf16(accountname), utf8Toutf16(protocol),
 		utf8Toutf16(username), utf8Toutf16(fp_string));
 
-	instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), s);
+	instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), s, WTW_MESSAGE_FLAG_INFO);
 
 	// update settings key list
 	instance->itsSettingsBroker.ui_update_keylist();
@@ -357,7 +361,7 @@ void wtwOTRmessaging::OTRL_gone_secure_cb(void *opdata,	ConnContext *context)
 	StringCbPrintfW(s, sizeof(s), L"Rozpoczêto prywatn¹ rozmowê z u¿ytkownikiem '%s'",
 		utf8Toutf16(context->username));
 
-	instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), s);
+	instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), s, WTW_MESSAGE_FLAG_INFO);
 
 	wtwContactDef ct;
 	ct.id = utf8Toutf16(context->username);
@@ -451,7 +455,7 @@ void wtwOTRmessaging::OTRL_still_secure_cb(void *opdata, ConnContext *context, i
 	wchar_t s[500];
 	StringCbPrintfW(s, sizeof(s), L"Pomyœlnie odœwie¿ono prywatn¹ rozmowê z u¿ytkownikiem '%s'",
 		utf8Toutf16(context->username));
-	wtwOTRmessaging::instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), s);
+	wtwOTRmessaging::instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), s, WTW_MESSAGE_FLAG_INFO);
 }
 
 
@@ -537,12 +541,12 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 		StringCbPrintfW(msg, sizeof(msg), L"Próbowa³eœ wys³aæ niezaszyfrowan¹ wiadomoœæ do u¿ytkownika '%s'. "
 			L"Poniewa¿ wybrana polityka szyfrowania wymaga szyfrowania, zostanie podjêta próba nawi¹zania "
 			L"bezpiecznego po³¹czenia (kiedy to siê stanie Twoja wiadomoœæ zostanie wys³ana).", peer_name);
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_INFO);
 		break;
 	case OTRL_MSGEVENT_ENCRYPTION_ERROR:
 		StringCbPrintfW(msg, sizeof(msg), L"Podczas szyfrowania Twojej wiadomoœci wyst¹pi³ b³¹d. "
 			L"Wiadomoœæ nie zosta³a wys³ana.");
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_ERROR);
 		break;
 	case OTRL_MSGEVENT_CONNECTION_ENDED:
 	{
@@ -556,7 +560,7 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 				L"osoba z któr¹ rozmawiasz zakoñczy³a prywatne po³¹czenie. "
 				L"Zakoñcz prywatn¹ rozmowê lub ponowniê j¹ rozpocznij.",
 				peer_name);
-			instance->displayMsgInChat(wtwOtrContext, msg);
+			instance->displayMsgInChat(wtwOtrContext, msg, WTW_MESSAGE_FLAG_INFO);
 
 			wtwContactDef ct;
 			ct.id = peer_name;
@@ -583,34 +587,34 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 				L"(%s).", utf8Toutf16(gcry_strerror(err)));
 			break;
 		}
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_ERROR);
 		break;
 	case OTRL_MSGEVENT_MSG_REFLECTED:
 		StringCbPrintfW(msg, sizeof(msg), L"Otrzymujesz spowrotem swoje wiadomoœci OTR. Albo rozmawiasz sam "
 			L"ze sob¹, albo ktoœ odsy³a Twoje wiadomoœci do Ciebie!");
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_WARNING);
 		break;
 	case OTRL_MSGEVENT_MSG_RESENT:
 		StringCbPrintfW(msg, sizeof(msg), L"Ostatnia wiadomoœæ wys³ana do '%s' zosta³a zretransmitowana.",
 			peer_name);
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_INFO);
 		break;
 	case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
 		StringCbPrintfW(msg, sizeof(msg),
 			L"Otrzymano zaszyfrowan¹ wiadomoœæ od u¿ytkownika %s, jednak nie mo¿na jej odczytaæ "
 			L"poniewa¿ <u>nie prowadzisz ju¿ prywatnej</u> rozmowy. Jeœli zamiezasz kontynuowaæ rozmowê "
 			L"proszê ponownie <u>rozpocz¹æ prywatn¹ rozmowê</u>.", peer_name);
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_ERROR);
 		break;
 	case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
 		StringCbPrintfW(msg, sizeof(msg),
 			L"Otrzymano wiadomoœæ od u¿ytkownika %s, której nie mo¿na odczytaæ.", peer_name);
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_ERROR);
 		break;
 	case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
 		StringCbPrintfW(msg, sizeof(msg),
 			L"Otrzymano uszkodzon¹ wiadomoœæ od u¿ytkownika %s.", peer_name);
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_ERROR);
 		break;
 	case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
 		// Do not print information about hearbit since it is "detected"
@@ -631,13 +635,13 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 		break;
 	case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
 		StringCbPrintfW(msg, sizeof(msg), L"Wyst¹pi³ b³¹d (%s).", utf8Toutf16(message));
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_ERROR);
 		break;
 	case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
 		StringCbPrintfW(msg, sizeof(msg),
 			L"<b>Wiadomoœæ otrzymana od u¿ytkownika '%s' <i>nie</i> by³a zaszyfrowana: [</b>%s<b>]</b>",
 			peer_name, utf8Toutf16(message));
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, false, true, true);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_WARNING, false, true, true);
 		break;
 	case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
 		LOG_CRITICAL(L"%s() Otrzymano nieznan¹ wiadomoœæ OTR od u¿ytkownika %s", __FUNCTIONW__, peer_name);
@@ -648,7 +652,7 @@ void wtwOTRmessaging::OTRL_handle_msg_event_cb(void *opdata, OtrlMessageEvent ms
 		//}
 		StringCbPrintfW(msg, sizeof(msg), L"%s wys³a³ wiadomoœæ, która by³a adresowana do innej sesji. Jeœli jesteœ "
 			L"zalogowany z wielu urzadzeñ, wiadomoœæ ta mog³a trafiæ na jedno z nich.",	peer_name);
-		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, false, true, true);
+		instance->displayMsgInChat(reinterpret_cast<WtwOtrContext*>(opdata), msg, WTW_MESSAGE_FLAG_INFO, false, true, true);
 		break;
 	default:
 		LOG_WARN(L"%s() - handling of event %d is not yet implemented", __FUNCTIONW__, (int)msg_event);
@@ -879,7 +883,7 @@ WTW_PTR wtwOTRmessaging::onCELReceive_cb(WTW_PARAM wParam, WTW_PARAM lParam, voi
 				/* Notify the user that the other side disconnected. */
 				StringCbPrintfW(msg, sizeof(msg), L"Prywatna rozmowa z u¿ytkownikiem '%s' zosta³a zakoñczona", celMsg->contactData.id);
 				instance->displayMsgInChat(celMsg->contactData.id, celMsg->contactData.netClass,
-					celMsg->contactData.netId, msg);
+					celMsg->contactData.netId, msg, WTW_MESSAGE_FLAG_INFO);
 
 				// open window so that button gets refreshed
 				wtwPf->fnCall(WTW_FUNCT_OPEN_CHAT_WINDOW, reinterpret_cast<WTW_PARAM>(&celMsg->contactData), 0);
@@ -981,7 +985,7 @@ WTW_PTR wtwOTRmessaging::onCELBeforeSend_cb(WTW_PARAM wParam, WTW_PARAM lParam, 
 			LOG_ERROR(L"Error occured while trying to cipher the message");
 			instance->displayMsgInChat(celMsg->contactData.id,
 				celMsg->contactData.netClass, celMsg->contactData.netId,
-				L"Failed to cipher your message - it has NOT been sent!");
+				L"Failed to cipher your message - it has NOT been sent!", WTW_MESSAGE_FLAG_ERROR);
 		}
 	}
 
@@ -1064,7 +1068,8 @@ void wtwOTRmessaging::initializeOTRL()
 
 void wtwOTRmessaging::releaseOTRL()
 {
-	// TODO: destroy timer if running/set
+	// destroy timer if running/set
+	// NOTE: timer alrady stopped in ~wtwOTRmessaging()
 
 	otrl_userstate_free(itsOtrlUserState);
 	itsOtrlUserState = nullptr;
@@ -1175,8 +1180,8 @@ int wtwOTRmessaging::otrg_plugin_send_default_query_conv(wtwContactDef *contact)
 	{
 		wchar_t buf[255];
 		StringCbPrintf(buf, sizeof(buf) / sizeof(wchar_t),
-			L"Protocol is not yet supported: %s", contact->netClass);
-		instance->displayMsgInChat(contact->id, contact->netClass, contact->netId, buf);
+			L"Protokó³/wtyczka %s nie wspiera odpowiednich mechanizmów szyfrowania.", contact->netClass);
+		instance->displayMsgInChat(contact->id, contact->netClass, contact->netId, buf, WTW_MESSAGE_FLAG_INFO);
 		return -1;
 	}
 
@@ -1212,7 +1217,7 @@ int wtwOTRmessaging::otrg_finish_private_conversation(wtwContactDef *contact)
 
 	wchar_t s[500];
 	StringCbPrintfW(s, sizeof(s), L"Zakoñczono prywatn¹ rozmowê z u¿ytkownikiem '%s'", contact->id);
-	instance->displayMsgInChat(contact->id, contact->netClass, contact->netId, s);
+	instance->displayMsgInChat(contact->id, contact->netClass, contact->netId, s, WTW_MESSAGE_FLAG_INFO);
 
 		// open window so that button gets refreshed
 		wtwPf->fnCall(WTW_FUNCT_OPEN_CHAT_WINDOW, reinterpret_cast<WTW_PARAM>(contact), 0);
@@ -1222,10 +1227,8 @@ int wtwOTRmessaging::otrg_finish_private_conversation(wtwContactDef *contact)
 }
 
 
-
-
 void wtwOTRmessaging::displayMsgInChat(const wchar_t *id, const wchar_t *netClass, int netId,
-	const wchar_t *msg, bool fontBold, bool tooltip, bool archiveMsg)
+	const wchar_t *msg, DWORD wtwMsgFlags, bool fontBold, bool tooltip, bool archiveMsg)
 {
 	const int max_len = 2048;
 	size_t len;
@@ -1255,24 +1258,22 @@ void wtwOTRmessaging::displayMsgInChat(const wchar_t *id, const wchar_t *netClas
 		md.contactData.netId = netId;
 		md.msgMessage = decorated;
 		md.msgTime = time(NULL);
-		md.msgFlags = WTW_MESSAGE_FLAG_INCOMING |
-						WTW_MESSAGE_FLAG_CHAT_MSG |
-						WTW_MESSAGE_FLAG_NOTHEME |
-						WTW_MESSAGE_FLAG_NOHTMLESC |
+		md.msgFlags = WTW_MESSAGE_FLAG_CHAT_MSG | WTW_MESSAGE_FLAG_NOHTMLESC |
+			(wtwMsgFlags & (WTW_MESSAGE_FLAG_INFO | WTW_MESSAGE_FLAG_WARNING | WTW_MESSAGE_FLAG_ERROR) ) |
 			((false == archiveMsg) ? WTW_MESSAGE_FLAG_NOARCHIVE : 0); // do not archive plugin messages
 		wtwPf->fnCall(WTW_CHATWND_SHOW_MESSAGE, TO_WTW_PARAM(&md), 0);
 	}
 }
 
 void wtwOTRmessaging::displayMsgInChat(const WtwOtrContext* wtwOtrContext,
-	const wchar_t *msg, bool fontBold, bool tooltip, bool archiveMsg)
+	const wchar_t *msg, DWORD wtwMsgFlags, bool fontBold, bool tooltip, bool archiveMsg)
 {
 	if (nullptr != wtwOtrContext)
 	{
 		ASSERT(nullptr != wtwOtrContext->wtw.id);
 		ASSERT(nullptr != wtwOtrContext->wtw.netClass);
 		displayMsgInChat(wtwOtrContext->wtw.id, wtwOtrContext->wtw.netClass,
-			wtwOtrContext->wtw.netId, msg, fontBold, tooltip, archiveMsg);
+			wtwOtrContext->wtw.netId, msg, wtwMsgFlags, fontBold, tooltip, archiveMsg);
 	}
 	else
 	{

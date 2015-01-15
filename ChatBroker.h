@@ -23,6 +23,7 @@ public:
 	static void update_ui(const wtwContactDef * const activeContact);
 
 private:
+	static const wchar_t * const OTR_BUTTON_ITEM_ID;
 
 	static const wchar_t * const GraphId_notPrivate;
 	static const wchar_t * const GraphId_private;
@@ -70,4 +71,6 @@ private:
 	static void loadGraphics();
 
 	static void setMenuItemIcon(HMENU menu, UINT itemPos, const wchar_t *graphId);
+
+	void removeAllButtons();
 };

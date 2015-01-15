@@ -117,6 +117,7 @@ SettingsBroker::~SettingsBroker(void)
 {
 	//destroySettingsInterface();
 	removeSettingsPage();
+	unregisterWndClass();
 	unsetSettingsBrokerInstancePointer();
 }
 
@@ -1051,9 +1052,18 @@ void SettingsBroker::registerWndClass()
 		wc.hIconSm = 0;
 
 		if (!RegisterClassEx(&wc)) {
-			LOG_CRITICAL(L"Registering settings window failed!");
+			LOG_CRITICAL(L"%s() Registering settings window failed!", __FUNCTIONW__);
 			return;
 		}
+	}
+}
+
+
+void SettingsBroker::unregisterWndClass()
+{
+	if (0 == UnregisterClass(SettingsWindowClassName, hInstance))
+	{
+		LOG_CRITICAL(L"%s() Unregistering settings window failed!", __FUNCTIONW__);
 	}
 }
 

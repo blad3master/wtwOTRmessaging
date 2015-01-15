@@ -198,6 +198,8 @@ private:
 
 	void registerWndClass();
 
+	void unregisterWndClass();
+
 	void initializeSettingsValues();
 
 //	void createSettingsIterface();
