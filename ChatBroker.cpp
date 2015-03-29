@@ -2,6 +2,7 @@
 #include "ChatBroker.h"
 #include "wtwapi/wtwChatHeaderBar.h"
 #include "wtwOTRmessaging.h"
+#include "PeerPolicy.h"
 
 extern "C" {
 #include "OTRL/proto.h"
@@ -65,18 +66,7 @@ ChatBroker::~ChatBroker(void)
 }
 
 
-std::wstring ChatBroker::makeKey(const wchar_t *id, const wchar_t *netClass, int netId)
-{
-	wchar_t buf[512];
-	StringCbPrintfW(buf, sizeof(buf), L"%s/%s/%d", id, netClass, netId);
-	return std::wstring(buf);
-}
 
-
-std::wstring ChatBroker::makeKey(const wtwContactDef *contact)
-{
-	return makeKey(contact->id, contact->netClass, contact->netId);
-}
 
 bool ChatBroker::wtwContactFromKey(const std::wstring &key, wchar_t *id, wchar_t *netClass, int *netId, size_t strLenBytes)
 {
@@ -115,7 +105,7 @@ WTW_PTR ChatBroker::onChatWndCreate(WTW_PARAM wParam, WTW_PARAM lParam, void* pt
 
 	for (int i = 0; i < p_wtwChatWindowInfo->iContacts; ++i)
 	{
-		const std::wstring &key = makeKey(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
+		const std::wstring &key = makeKeyFromPeer(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
 		if (chatWndList.find(key) != chatWndList.end()) {
 			LOG_ERROR(L"%s() wtwContactDef pointer already in the window list!", __FUNCTIONW__);
 			continue;
@@ -135,7 +125,7 @@ WTW_PTR ChatBroker::onChatWndDestroy(WTW_PARAM wParam, WTW_PARAM lParam, void* p
 
 	for (int i = 0; i < p_wtwChatWindowInfo->iContacts; ++i)
 	{
-		const std::wstring &key = makeKey(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
+		const std::wstring &key = makeKeyFromPeer(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
 		auto it = chatWndList.find(key);
 		if (it != chatWndList.end()) {
 			chatWndList.erase(it);
@@ -163,7 +153,7 @@ WTW_PTR ChatBroker::onChatWndShow(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr)
 	{
 		for (int i = 0; i < p_wtwChatWindowInfo->iContacts; ++i)
 		{
-			const std::wstring &key = makeKey(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
+			const std::wstring &key = makeKeyFromPeer(p_wtwContactDef[i].id, p_wtwContactDef[i].netClass, p_wtwContactDef[i].netId);
 			if (chatWndList.find(key) != chatWndList.end()) {
 				continue;
 			}
@@ -201,6 +191,18 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 	InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 10, L"Pomoc");
 	setMenuItemIcon(menu, 0, GraphId_help);
 	InsertMenu(menu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, nullptr);
+#if 1
+	OtrlPolicy p = PeerPolicy::get(activeContact);
+	HMENU menu2 = CreatePopupMenu();
+	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_GLOBAL_SETTING ==p )? MF_CHECKED : 0), 20, L"Globalna");
+	InsertMenu(menu2, 0, MF_BYPOSITION | MF_SEPARATOR, 0, nullptr);
+	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_NEVER == p) ? MF_CHECKED : 0), 21, L"Nigdy");
+	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_MANUAL == p) ? MF_CHECKED : 0), 22, L"Rêcznie");
+	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_OPPORTUNISTIC == p) ? MF_CHECKED : 0), 23, L"Automatycznie");
+	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_ALWAYS == p) ? MF_CHECKED : 0), 24, L"Zawsze");
+	InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)menu2, L"Polityka szyfrowania");
+	InsertMenu(menu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, nullptr);
+#endif
 	if (enabled & POPUP_ENABLE::REAUTHENTICATE) {
 		InsertMenu(menu, 0, MF_BYPOSITION | MF_STRING, 5, L"Ponownie potwierdŸ to¿samoœæ");
 		setMenuItemIcon(menu, 0, GraphId_identity);
@@ -223,6 +225,9 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 		0, p_callback->hWnd, NULL);
 	switch (ret) {
 		wchar_t s[500];
+	case 0:
+		// user did not choose any action from menu - do nothing
+		break;
 	case 2:
 		StringCbPrintfW(s, sizeof(s), L"Próba odœwie¿enia prywatnej rozmowy z u¿ytkownikiem '%s'",
 			activeContact->id);
@@ -241,8 +246,23 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 	case 10:
 		ShellExecute(NULL, L"open", L"http://blad3master.com/pl/wtwotrmessaging#faq", NULL, NULL, SW_SHOWNORMAL);
 		break;
+	case 20:
+		 PeerPolicy::set(activeContact, OTRL_POLICY_GLOBAL_SETTING);
+		break;
+	case 21:
+		PeerPolicy::set(activeContact, OTRL_POLICY_NEVER);
+		break;
+	case 22:
+		PeerPolicy::set(activeContact, OTRL_POLICY_MANUAL);
+		break;
+	case 23:
+		PeerPolicy::set(activeContact, OTRL_POLICY_OPPORTUNISTIC);
+		break;
+	case 24:
+		PeerPolicy::set(activeContact, OTRL_POLICY_ALWAYS);
+		break;
 	default:
-		//MessageBox(NULL, L"Default", L"MENU", MB_OK);
+		LOG_CRITICAL(L"%s() function not supported (id = %d)", __FUNCTIONW__, ret);
 		break;
 	}
 
@@ -252,13 +272,13 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 
 int ChatBroker::initializePrivateConversation(wtwContactDef *contact)
 {
-	if (SettingsBroker::OTRL_POLICY::NEVER != SettingsBroker::settingsBrokerInstance->getOtrlPolicy())
+	if (OTRL_POLICY_NEVER != PeerPolicy::get(contact))
 	{
 		return wtwOTRmessaging::otrg_plugin_send_default_query_conv(contact);
 	}
 	else
 	{
-		MessageBox(NULL, L"Ustawiona politykê szyfrowania nie pozwala na szyfrowanie wiadomoœci!",
+		MessageBox(NULL, L"Ustawiona polityka szyfrowania nie pozwala na szyfrowanie wiadomoœci!",
 			L"wtwOTRmessaging", MB_OK);
 	}
 	return 0;
@@ -286,7 +306,7 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 		//LOG_INFO(L"%s() [%d] id %s    ptr 0x%p", __FUNCTIONW__, ++i, it.first.data(), it.second);
 
 		// update only given contact if provided
-		if ((nullptr != activeContact) && (makeKey(activeContact) != it.first))	{
+		if ((nullptr != activeContact) && (makeKeyFromPeer(activeContact) != it.first))	{
 			continue;
 		}
 
@@ -314,7 +334,7 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 				(int)context->otr_offer			);
 			*/
 
-			const std::wstring &key = makeKey(utf8Toutf16(context->username),
+			const std::wstring &key = makeKeyFromPeer(utf8Toutf16(context->username),
 				utf8Toutf16(context->protocol), WtwOtrContext::netIdFromAccountname(context->accountname));
 
 			if (it.first == key) {
@@ -326,11 +346,11 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 
 		if ((nullptr != context) && (true == match))
 		{
-			if (nullptr != context->recent_child) {
-				context = context->recent_child;
+			if (nullptr != context->recent_sent_child) {
+				context = context->recent_sent_child;
 			}
 			else {
-				LOG_WARN(L"%s() context->recent_child is nullptr!", __FUNCTIONW__);
+				LOG_WARN(L"%s() context->recent_sent_child is nullptr!", __FUNCTIONW__);
 			}
 
 			switch (context->msgstate) {
@@ -417,7 +437,7 @@ void ChatBroker::update_ui(const wtwContactDef * const activeContact)
 					attr.flags = WTW_WA_FLAG_GET_VISIBLE_WINDOW_INFO;
 					if (S_OK != wtwPf->fnCall(WTW_FUNCT_GET_CHATWND_ATTRIBUTES, reinterpret_cast<WTW_PARAM>(&attr), 0))
 					{
-						if (makeKey(&contact) != it.first) {
+						if (makeKeyFromPeer(&contact) != it.first) {
 							continue; // this contact is not active - do not update
 						}
 					}
@@ -528,8 +548,13 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 	WtwOtrContext::accountnameFromNetId(accountname, sizeof(accountname), peer->netId);
 
 	ConnContext *context = otrl_context_find(wtwOTRmessaging::instance->itsOtrlUserState,
+#ifdef _WTWOTRMESSAGING_USE_DYNAMIC_STRINGS
+							utf16Toutf8(peer->id).operator LPCSTR(), accountname,
+							utf16Toutf8(peer->netClass).operator LPCSTR(),
+#else
 							utf16Toutf8(peer->id), accountname,
 							utf16Toutf8(peer->netClass),
+#endif
 							OTRL_INSTAG_BEST, 0, nullptr, wtwOTRmessaging::otrl_ConnContex_created,	nullptr );
 
 	if (nullptr == context || nullptr == context->active_fingerprint || nullptr == context->active_fingerprint->fingerprint)
@@ -540,7 +565,13 @@ void ChatBroker::authenticatePeer(wtwContactDef *peer)
 
 	char my_fp[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
 	otrl_privkey_fingerprint(wtwOTRmessaging::instance->itsOtrlUserState, my_fp,
-		accountname, utf16Toutf8(peer->netClass));
+		accountname,
+		#ifdef _WTWOTRMESSAGING_USE_DYNAMIC_STRINGS
+			utf16Toutf8(peer->netClass).operator LPCSTR()
+		#else
+			utf16Toutf8(peer->netClass)
+		#endif
+		);
 
 	char peer_fp[OTRL_PRIVKEY_FPRINT_HUMAN_LEN];
 	otrl_privkey_hash_to_human(peer_fp, context->active_fingerprint->fingerprint);

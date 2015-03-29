@@ -97,7 +97,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;POLISH;HAVE_CONFIG_H;__i386__;snprintf=_snprintf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\wtwapi;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -116,7 +116,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;POLISH;HAVE_CONFIG_H;__x86_64__;snprintf=_snprintf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\wtwapi;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
@@ -138,7 +138,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;POLISH;HAVE_CONFIG_H;__x86_64__;snprintf=_snprintf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\wtwapi;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,7 +156,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WTWOTRMESSAGING_EXPORTS;POLISH;HAVE_CONFIG_H;__x86_64__;snprintf=_snprintf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\wtwapi;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgcrypt\src;C:\Data\wtwOTRmessaging\wtwOTRmessaging\wtwOTRmessaging\libgcrypt\libgpg-error\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
@@ -190,6 +190,8 @@
     <ClInclude Include="OTRL\tlv.h" />
     <ClInclude Include="OTRL\userstate.h" />
     <ClInclude Include="OTRL\version.h" />
+    <ClInclude Include="PeerPolicy.h" />
+    <ClInclude Include="PluginSettings.h" />
     <ClInclude Include="SettingsBroker.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -230,6 +232,7 @@
     <ClInclude Include="wtwapi\wtwHttpServices.h" />
     <ClInclude Include="wtwapi\wtwI18N.h" />
     <ClInclude Include="wtwapi\wtwInputWindows.h" />
+    <ClInclude Include="wtwapi\wtwLicense.h" />
     <ClInclude Include="wtwapi\wtwLog.h" />
     <ClInclude Include="wtwapi\wtwMenu.h" />
     <ClInclude Include="wtwapi\wtwMessageHelper.h" />
@@ -241,6 +244,7 @@
     <ClInclude Include="wtwapi\wtwPanels.h" />
     <ClInclude Include="wtwapi\wtwPlugin.h" />
     <ClInclude Include="wtwapi\wtwPluginSettings.h" />
+    <ClInclude Include="wtwapi\wtwPolicy.h" />
     <ClInclude Include="wtwapi\wtwProcAddr.h" />
     <ClInclude Include="wtwapi\wtwProperties.h" />
     <ClInclude Include="wtwapi\wtwProtocol.h" />
@@ -248,6 +252,7 @@
     <ClInclude Include="wtwapi\wtwScriptInterface.h" />
     <ClInclude Include="wtwapi\wtwSession.h" />
     <ClInclude Include="wtwapi\wtwSettings.h" />
+    <ClInclude Include="wtwapi\wtwSharedContacts.h" />
     <ClInclude Include="wtwapi\wtwSMS.h" />
     <ClInclude Include="wtwapi\wtwStandardImpl.h" />
     <ClInclude Include="wtwapi\wtwStatusWnd.h" />
@@ -263,7 +268,7 @@
     <ClInclude Include="wtwapi\wtwWebAuthWindow.h" />
     <ClInclude Include="wtwapi\wtwWebInfo.h" />
     <ClInclude Include="wtwapi\wtwWindowMessageFilter.h" />
-    <ClInclude Include="wtwapi\wtwWinInet.h" />
+    <ClInclude Include="wtwapi\wtwWindows.h" />
     <ClInclude Include="wtwapi\wtwWizard.h" />
     <ClInclude Include="wtwapi\wtwXMPP.h" />
     <ClInclude Include="wtwOTRmessaging.h" />
@@ -400,6 +405,8 @@
     <ClCompile Include="OTRL\sm.c" />
     <ClCompile Include="OTRL\tlv.c" />
     <ClCompile Include="OTRL\userstate.c" />
+    <ClCompile Include="PeerPolicy.cpp" />
+    <ClCompile Include="PluginSettings.cpp" />
     <ClCompile Include="SettingsBroker.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

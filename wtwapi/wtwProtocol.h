@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #ifndef __wtw__protocol_h__
@@ -12,7 +12,8 @@
 #include "wtwContact.h"
 
 #define WTW_MESSAGE_EXTRA_INFO_SUBJECT	L"subject"	// meesage subject
-#define WTW_MESSAGE_EXTRA_INFO_MUID		L"muid"		// message unique id
+#define WTW_MESSAGE_EXTRA_INFO_UMID		L"umid"		// message unique id
+#define WTW_MESSAGE_EXTRA_INFO_UCID		L"ucid"		// conversation unique id
 
 struct wtwMessageExtInfo 
 {
@@ -62,9 +63,33 @@ inline const wchar_t * __valFromExtInfo(const wtwMessageDef *msg, const wchar_t 
 {
 	const wchar_t *ret = def;
 
+	if (msg->extInfo == NULL)
+	{
+		return ret;
+	}
+
+	const int shift = msg->extInfo->structSize;
+	const char *p = reinterpret_cast<const char*>(msg->extInfo);
+
 	for (int i = 0; i < msg->extInfoCount; ++i)
 	{
-		if (msg->extInfo[i].name && !wcscmp(name, msg->extInfo[i].name))
+		const wchar_t *n;
+		const wchar_t *v;
+
+		if (shift == sizeof(wtwMessageExtInfo))
+		{
+			const wtwMessageExtInfo *pe = reinterpret_cast<const wtwMessageExtInfo *>(p + (i * shift));
+			n = pe->name;
+			v = pe->value;
+		}
+		else
+		{
+			const wtwMessageExtInfoEx *pe = reinterpret_cast<const wtwMessageExtInfoEx *>(p + (i * shift));
+			n = pe->name;
+			v = static_cast<const wchar_t*>(pe->value);
+		}
+
+		if (n && !wcscmp(name, n))
 		{
 			ret = msg->extInfo[i].value;
 			break;
@@ -108,7 +133,7 @@ struct wtwAvatarEvent
 #define WTW_MESSAGE_FLAG_INCOMING		0x00000001
 #define WTW_MESSAGE_FLAG_OUTGOING		0x00000002
 #define WTW_MESSAGE_FLAG_CHAT_MSG		0x00000004
-#define WTW_MESSAGE_FLAG_ENCRYPTED		0x00000008 	// marker for "do not store encrypted message to archive" option
+#define WTW_MESSAGE_FLAG_NONOTIFY		0x00000008 	// marker for "do not store encrypted message to archive" option
 #define WTW_MESSAGE_FLAG_CONFERENCE		0x00000010	// conference messages are not routed automagically into conference window
 #define WTW_MESSAGE_FLAG_PICTURE		0x00000040	// msgMessage MUST BE base64 encoded picture data
 #define WTW_MESSAGE_FLAG_NOHTMLESC		0x00000080	// do not replace <> with &lt; & &gt;
@@ -122,6 +147,7 @@ struct wtwAvatarEvent
 #define WTW_MESSAGE_FLAG_CUSTOM_VARS	0x00080000	// custom variables are present
 #define WTW_MESSAGE_FLAG_OFFLINE		0x00100000	// delivered from offline storage
 #define WTW_MESSAGE_FLAG_CEL			0x00200000	// encrypted message, do not route via message hooks
+#define WTW_MESSAGE_FLAG_FORCENODISP	0x00400000	// don't disaply message, just pass it to archive
 
 #define WTW_MESSAGE_FLAG_UTF8_MARK		0x10000000	// do not use, internal
 #define WTW_MESSAGE_FLAG_DEFLATED		0x20000000	// do not use, internal
@@ -508,7 +534,7 @@ struct wtwProtocolEvent
 	int				type;			// typ
 
 	wtwContactDef * pContactData;			// jesli s¹ dostepne sparsowane informacje o kontakcie inaczej NULL
-	const wchar_t * metaGUID;		// jest kontakt jest w metakontakcie to tu jest id meta, jesli nie - null;
+	void	 *		varRet;
 };
 
 
@@ -861,7 +887,20 @@ HANDLE __inline wtwInstProtoFunc(
 	wchar_t sFuncName[255] = {0};
 	swprintf(sFuncName, sizeof(sFuncName) / sizeof(wchar_t), L"%s/%d/%s", netClass, netId, funcName);
 	return pF->fnCreate(sFuncName, funcAddr, funcOwnerData);
+}
 
+HANDLE __inline wtwInstGlobalProtoFunc(
+	WTWFUNCTIONS *pF,			// interface pointer
+	const wchar_t * netClass,	// protocol class
+	const wchar_t * funcName,	// function name
+	WTWFUNCTION		funcAddr,	// pointer to function, if it's not obvious
+	void *			funcOwnerData
+	)
+{
+
+	wchar_t sFuncName[255] = {0};
+	swprintf(sFuncName, sizeof(sFuncName) / sizeof(wchar_t), L"%s/%s", netClass, funcName);
+	return pF->fnCreate(sFuncName, funcAddr, funcOwnerData);
 }
 
 /*******************************************************************************
@@ -915,8 +954,6 @@ struct wtwRTTInfo
 	DWORD			flags;
 	
 };
-
-
 
 
 #define WTW_PF_GET_CT_SPEC_INFO		L"PFGetSpecInfo"	// get contact specyfic info, max img size, or smth
@@ -1017,6 +1054,51 @@ struct wtwPicture
 #define WTW_PF_INIT_ADD			L"PFInitAdd"
 #define WTW_PF_INIT_SEND_PICT	L"PFInitSendPicture"
 
+#define WTW_GPF_ACCOUNT_ADD		L"PFAccountAdd"		// wP - wtwProtocolAccount*
+#define WTW_GPF_ACCOUNT_REMOVE	L"PFAccountRemove"	// wP - wtwProtocolAccount*
+
+
+struct wtwProtocolAccountInfo
+{
+	__wtwStdStructDefs(wtwProtocolAccountInfo);
+
+	int				structSize;
+
+	const wchar_t	*name;
+
+	union
+	{
+		int			iValue;
+		long long	lValue;
+		const wchar_t * sValue;
+	};
+
+	DWORD flags;
+};
+
+struct wtwProtocolAccount
+{
+	__wtwStdStructDefs(wtwProtocolAccount);
+	
+	int				structSize;
+
+	DWORD			flags;
+
+	const wchar_t	*name;
+	const wchar_t	*login;
+	const wchar_t	*password;
+
+	const wchar_t	*connectionHost;
+	int				connectionPort;
+
+	wtwProtocolAccountInfo *pExtraInfo;
+	int				iExtraInfo;
+
+	void			*reserved1;
+	void			*reserved2;
+};
+
+#define WPA_FLAG_ASK_FOR_PASSWORD	0x00000001
 
 //////////////////////////////////////////////////////////////////////
 //

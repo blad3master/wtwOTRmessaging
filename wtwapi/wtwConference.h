@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #ifndef __wtw__cwin_h__
@@ -78,6 +78,7 @@ struct wtwConferenceWindowEvent // passed as wP in window/event callback
 #define CONFERENCE_EVENT_TAB_DESTROYED		0x0C // lp - NULL
 #define CONFERENCE_EVENT_TAB_ON_SHOW		0x0E // lp - 1 - if shown, 0 - otherwise
 #define CONFERENCE_EVENT_TAB_BEFORE_CLOSE	0x0F // lp - NULL
+#define CONFERENCE_EVENT_LOG_COMMAND		0x10 // lp - wtwConferenceCommnad*
 
 struct wtwConferenceTabEvent	// not used
 {
@@ -326,6 +327,7 @@ struct wtwConferenceTab
 #define CFTF_AUTO_MARK		0x00020000
 #define CFTF_CLOSEABLE		0x00040000	// user can close tab
 #define CFTF_DELAY_DELETE	0x00080000	// MUST be set if TAB_DELETE is called from window callback
+#define CFTF_LOG_CMD_FIELD	0x00100000
 
 #define CFTC_LOG			0x0001
 #define CFTC_MULTI_USER		0x0002
@@ -663,6 +665,19 @@ struct wtwConferenceTabPtr
 */
 
 #define WTW_CONFERENCE_TAB_GET_USER_PTR		L"WTW/C9/GetTabUserPtr"
+
+
+
+struct wtwConferenceCommand
+{
+	__wtwStdStructDefs(wtwConferenceCommand);
+
+	int				structSize;
+
+	const wchar_t * str;
+
+	DWORD			flags;
+};
 
 
 #endif

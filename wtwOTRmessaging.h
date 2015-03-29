@@ -58,7 +58,7 @@ public:
 		ConnContext *context;
 
 		bool privateConverstationEnded;	// set to true when trying to encrypt
-										// typed msg but peer has ended private session
+										// typed msg but peer has ended private session but we have not done so
 	} otr;
 
 	WtwOtrContext() {
@@ -92,11 +92,15 @@ public:
 		}
 	}
 
-	static WtwOtrContext* WtwOtrContext::find(const wtwContactDef &contact);
+	static WtwOtrContext* find(const wtwContactDef &contact);
+
+	static WtwOtrContext* find(const char *username, const char *protocol, const char *accountname);
 
 	static void accountnameFromNetId(char *buf, size_t sizeOfBuf, int netId);
 
 	static int netIdFromAccountname(const char *buf);
+
+	static const WtwOtrContext *getAllInstances();
 
 private:
 	static WtwOtrContext _instances[INSTANCES_TOTAL];
@@ -151,6 +155,8 @@ private:
 	/* VARIABLES */
 	/*************/
 
+	// keep Logger the very first member to assure that logging capability is provided for
+	// all other components (constructed first, destroyed last so other classes may use it any time)
 	Logger logger;
 
 	SettingsBroker itsSettingsBroker;
@@ -165,7 +171,7 @@ private:
 
 	// WTW hooks
 	//HANDLE onBeforeMsgDisp2_hook;
-	//HANDLE onProtocolEvent_hook;
+	HANDLE onProtocolEvent_hook;
 	//HANDLE onChatwndBeforeMsgProc_hook;
 	HANDLE onCELReceive_hook;
 	HANDLE onCELBeforeSend_hook;
@@ -197,7 +203,7 @@ private:
 //	static VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 
 	// WTW protocol event callback
-	//static WTW_PTR onProtocolEvent_cb(WTW_PARAM, WTW_PARAM, void*);
+	static WTW_PTR onProtocolEvent_cb(WTW_PARAM, WTW_PARAM, void*);
 
 	// WTW callback
 	//static WTW_PTR onBeforeMsgDisp2_cb(WTW_PARAM, WTW_PARAM, void*);
@@ -441,6 +447,12 @@ private:
 	void installWtwFunctions();
 
 	void removeWtwFunctions();
+
+	// finish all privat conversations
+	// Helps to avoid a situation when we do not inform other side about exiting,
+	// then reruning the WTW+plugin. When we receive an encrypted msg from previous unfinished
+	// sesion, otrl_msgs_receiving will mark it as "ignore" and thus msg would be silently dropped!
+	void endAllPrivateConversationsAtExit();
 
 	static int sendRawMessageToNetwork(const char* msg);
 

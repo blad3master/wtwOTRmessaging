@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #ifndef __wtwFile_h__
@@ -215,5 +215,49 @@ struct wtwFileSize
 #define WTW_FILE_GET_SECTOR_SIZE	L"WTW/FileGetSectSize"
 #define WTW_FILE_SET_SECTOR_SIZE	L"WTW/FileSetSectSize"
 
+///////////////////////////////////////////////////////////////////
+//
+//		WTW_FILE_GET_INTERFACE - gets file interface pointers (for faster access)
+//
+//		wP - wtwFileInterface*
+//		lP - NULL
+//
+//		return value:
+//			on error:
+//				E_* 
+//			on success:
+//				S_OK
+//
+
+struct wtwFileInterface
+{
+	__wtwStdStructDefs(wtwFileInterface);
+
+	int			structSize;
+
+	WTWFUNCTION	createEx;
+	WTWFUNCTION	destroy;
+
+	WTWFUNCTION	open;
+	WTWFUNCTION	close;
+
+	WTWFUNCTION	read;
+	WTWFUNCTION	write;
+	
+	WTWFUNCTION	seek;
+	WTWFUNCTION	getSize;
+	WTWFUNCTION	truncate;
+
+	WTWFUNCTION	encrypt;
+	WTWFUNCTION	decrypt;
+	WTWFUNCTION	isEncrypted;
+
+	WTWFUNCTION	getSectorSize;
+	WTWFUNCTION	setSectorSize;
+
+	void *cbData; // pass it as third parameter in function calls
+};
+
+#define WTW_FILE_GET_INTERFACE L"WTW/FileGetInterface"
 
 #endif

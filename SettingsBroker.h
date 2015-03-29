@@ -39,6 +39,15 @@ public:
 
 	OTRL_POLICY getOtrlPolicy() const;
 
+	// remove some HTML tags: <b><font>
+	bool getRemoveHtmlTags() const;
+
+	// replace some HTML entities with text &amp; => '&', &quot => '"'
+	bool getReplaceHtmlEntities() const;
+
+	// enable logging received/sent messages from/to network
+	bool getTraceIOMessages() const;
+
 	void ui_update_keylist();
 
 
@@ -135,27 +144,27 @@ private:
 //	static std::vector<UI_ELEMENT> ui_elements;
 
 	// wtwOTRmessaging settings window - full file path
-	HWND ui_settingsFilePath;
+	HWND ui_settingsFilePath = nullptr;
 
 	// Private key - full file path
-	HWND ui_privateKeyFilePath;
+	HWND ui_privateKeyFilePath = nullptr;
 
 	// Private key hash
-	HWND ui_hash;
+	HWND ui_hash = nullptr;
 
 	// OTRL policy combobox
-	HWND ui_otrl_policy;
+	HWND ui_otrl_policy = nullptr;
 
 	// Enable logging to file?
-	HWND ui_log_to_file;
+	HWND ui_log_to_file = nullptr;
 
 	// List of keys
-	HWND ui_keyList = 0;
+	HWND ui_keyList = nullptr;
 	std::vector<void*> keyList_fingerprints; // mapping of ui_keyList indexes to ConnContext->fingerprint
 
 
 	// Pointer to main class
-	wtwOTRmessaging * itsWtwOTRmessaging;
+	wtwOTRmessaging * itsWtwOTRmessaging = nullptr;
 
 private:
 	// forget the peer fingerprint (key)
@@ -209,6 +218,9 @@ private:
 	void loadSettingsFromFile();
 	
 	void saveSettingsToFile();
+
+	// set all pointer to UI objects to nullptr when window is closed (destroyed)
+	void clearUiPointers();
 };
 
 

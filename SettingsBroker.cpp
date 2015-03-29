@@ -33,8 +33,8 @@ const wchar_t * const SettingsBroker::SETTINGS_WTW_NAMES[SETTING_KEY_NUMBER_OF_K
 	L"log_to_file",             // SETTING_KEY_LOG_TO_FILE
 };
 
-SettingsBroker * SettingsBroker::settingsBrokerInstance = 0;
-HWND SettingsBroker::ui_settingsWnd = 0;
+SettingsBroker * SettingsBroker::settingsBrokerInstance = nullptr;
+HWND SettingsBroker::ui_settingsWnd = nullptr;
 POINT SettingsBroker::ui_settingsWnd_scroll = { 0, 0 };
 std::map<std::wstring, std::wstring> SettingsBroker::keyHashMap;
 
@@ -249,8 +249,29 @@ SettingsBroker::OTRL_POLICY SettingsBroker::getOtrlPolicy() const
 	{
 		policy = (OTRL_POLICY)(x);
 	}
-	LOG_TRACE(L"%s() x: %u  policy: %u", __FUNCTIONW__, x, policy);
+	LOG_TRACE(L"%s() x: %u  policy: %u", __FUNCTIONW__, x, (unsigned int)policy);
 	return policy;
+}
+
+bool SettingsBroker::getRemoveHtmlTags() const
+{
+	// TODO: add to options window
+	return true;
+}
+
+bool SettingsBroker::getReplaceHtmlEntities() const
+{
+	// TODO: add to options window
+	return true;
+}
+
+bool SettingsBroker::getTraceIOMessages() const
+{
+	#ifdef _WTWOTRMESSAGING_EXTRA_LOGGING
+		return true;
+	#else
+		return false;
+	#endif
 }
 
 
@@ -527,6 +548,8 @@ WTW_PTR SettingsBroker::onActionShow(wtwOptionPageShowInfo* pInfo)
 {
 	//MessageBox(NULL, L"onActionShow", L"Parametry", MB_OK);
 
+	LOG_TRACE(L"%s() ui_settingsWnd=0x%p", __FUNCTIONW__, (void*)ui_settingsWnd);
+
 	#if POLISH
 	CString caption = L"wtwOTRmessaging - implementacja protoko³u Off-the-Record Messaging";
 	CString description = L"Wtyczka pozwala uwierzytelniæ naszego rozmówcê i szyfrowaæ wymieniane wiadomoœci.";
@@ -778,13 +801,16 @@ WTW_PTR SettingsBroker::onActionHide(wtwOptionPageShowInfo* pInfo)
 
 WTW_PTR SettingsBroker::onActionOk(wtwOptionPageShowInfo* pInfo)
 {
+	LOG_TRACE(L"%s()", __FUNCTIONW__);
+
 	// Save settings
 	onActionApply(pInfo);
 
 	// Destroy window
 	if (ui_settingsWnd) {
 		DestroyWindow(ui_settingsWnd);
-		ui_settingsWnd = 0;
+		clearUiPointers();
+		//ui_settingsWnd = nullptr; // already done in clearUiPointers();
 	}
 
 	return 0;
@@ -795,12 +821,26 @@ WTW_PTR SettingsBroker::onActionApply(wtwOptionPageShowInfo* pInfo)
 {
 #if 1 // DO_NOT_USE_WTWAPI_SETTINGS_FUNCTIONS
 
-	settingsMap[SETTING_KEY_OTRL_POLICY].value_uint = static_cast<unsigned int>(
-		SendMessage((HWND)ui_otrl_policy, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0) );
-	LOG_TRACE(L"%s() policy set to: %u", __FUNCTIONW__, settingsMap[SETTING_KEY_OTRL_POLICY].value_uint);
+	if (ui_otrl_policy) {
+		settingsMap[SETTING_KEY_OTRL_POLICY].value_uint = static_cast<unsigned int>(
+			SendMessage((HWND)ui_otrl_policy, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0));
+		LOG_TRACE(L"%s() policy set to: %u", __FUNCTIONW__, settingsMap[SETTING_KEY_OTRL_POLICY].value_uint);
+	}
+	else {
+		// This may happen when plugin in unloaded and loaded again from WTW options dialog, and then
+		// OK is clicked - in such a case UI pointer is not valid!
+		LOG_WARN(L"%s() ui_otrl_policy not set - wtwOTRmessaging settings not saved!", __FUNCTIONW__);
+		return 0;
+	}
 
-	settingsMap[SETTING_KEY_LOG_TO_FILE].value_bool =
-		(BST_CHECKED == IsDlgButtonChecked(ui_settingsWnd, UI_SETTING_HMENU_LOG_TO_FILE));
+	if (ui_settingsWnd) {
+		settingsMap[SETTING_KEY_LOG_TO_FILE].value_bool =
+			(BST_CHECKED == IsDlgButtonChecked(ui_settingsWnd, UI_SETTING_HMENU_LOG_TO_FILE));
+	}
+	else {
+		LOG_WARN(L"%s() ui_settingsWnd not set - wtwOTRmessaging settings not saved!", __FUNCTIONW__);
+		return 0;
+	}
 
 	saveSettingsToFile();
 
@@ -854,7 +894,8 @@ WTW_PTR SettingsBroker::onActionCancel(wtwOptionPageShowInfo* pInfo)
 {
 	if (ui_settingsWnd) {
 		DestroyWindow(ui_settingsWnd);
-		ui_settingsWnd = 0;
+		clearUiPointers();
+		// ui_settingsWnd = 0; //done in clearUiPointers();
 	}
 	return 0;
 }
@@ -935,6 +976,7 @@ void SettingsBroker::setSettingsBrokerInstancePointer()
 	if (0 == settingsBrokerInstance) {
 		settingsBrokerInstance = this;	// Set instance pointer
 		ui_settingsWnd = 0;				// Make sure window pointer is cleared
+		clearUiPointers();
 	} else {
 		LOG_CRITICAL(L"Second instance of Settings cannot be created!");
 		// TODO: retun some error so that plugin get unloaded
@@ -1214,16 +1256,18 @@ void SettingsBroker::ui_update_keylist()
 			otrl_privkey_hash_to_human(hash, fingerprint->fingerprint);
 
 			char accountname[300];
-			_snprintf(accountname, sizeof(accountname), "%s/%d",
+			//_snprintf(accountname, sizeof(accountname), "%s/%d",
+			//	context->protocol, WtwOtrContext::netIdFromAccountname(context->accountname));
+			_snprintf_s(accountname, sizeof(accountname), sizeof(accountname), "%s/%d",
 				context->protocol, WtwOtrContext::netIdFromAccountname(context->accountname));
 
 			LVITEM   lv = { 0 };
 			lv.iItem = index;
 			ListView_InsertItem(ui_keyList, &lv);
-			ListView_SetItemText(ui_keyList, index, 0, (wchar_t*)utf8Toutf16(context->username));
+			ListView_SetItemText(ui_keyList, index, 0, const_cast<wchar_t*>(utf8Toutf16(context->username).operator LPCWSTR()));
 			ListView_SetItemText(ui_keyList, index, 1, (otrl_context_is_fingerprint_trusted(fingerprint)) ? L"TAK" : L"NIE");
-			ListView_SetItemText(ui_keyList, index, 2, (wchar_t*)utf8Toutf16(hash));
-			ListView_SetItemText(ui_keyList, index, 3, (wchar_t*)utf8Toutf16(accountname));
+			ListView_SetItemText(ui_keyList, index, 2, const_cast<wchar_t*>(utf8Toutf16(hash).operator LPCWSTR()));
+			ListView_SetItemText(ui_keyList, index, 3, const_cast<wchar_t*>(utf8Toutf16(accountname).operator LPCWSTR()));
 			keyList_fingerprints.push_back(fingerprint);
 			++index;
 
@@ -1442,4 +1486,17 @@ void SettingsBroker::saveSettingsToFile()
 	getSettingValueHelper(SETTING_KEY_OTRL_POLICY, SETTING_TYPE_UINT, &policy);
 	_snwprintf_s(value, sizeof(value) / sizeof(value[0]), sizeof(value) / sizeof(value[0]), L"%u", policy);
 	WritePrivateProfileString(L"global", SETTINGS_WTW_NAMES[SETTING_KEY_OTRL_POLICY], value, fn);
+}
+
+
+
+void SettingsBroker::clearUiPointers()
+{
+	ui_hash = nullptr;
+	ui_keyList = nullptr;
+	ui_log_to_file = nullptr;
+	ui_otrl_policy = nullptr;
+	ui_privateKeyFilePath = nullptr;
+	ui_settingsFilePath = nullptr;
+	ui_settingsWnd = nullptr;
 }

@@ -1,5 +1,5 @@
 /*
-*** Copyright (C) 2007-2014, K2T.eu
+*** Copyright (C) 2007-2015, K2T.eu
 */
 
 #pragma once
@@ -22,28 +22,34 @@ struct wtwArchiveEntrySms
 	DWORD			writeFlags;
 };
 
-#define WTW_ARCH_WRITE_SMS		L"Ar/WriteSMS"
-#define WTW_ARCH_WRITE_MESSAGE	L"Ar/WriteMessage"
+#define WTW_ARCH_WRITE_SMS			L"Ar/WriteSMS"
+#define WTW_ARCH_WRITE_MESSAGE_EX	L"Ar/WriteMessageEx"
 
-struct wtwArchiveEntryMessage 
+struct wtwArchiveEntryMessageEx 
 {
-	__wtwStdStructDefs(wtwArchiveEntryMessage);
+	__wtwStdStructDefs(wtwArchiveEntryMessageEx);
 
 	int				structSize;
-	int				chatID;			// to jest parametr in/out. Jesli potrzebujemy nowego ID
+	__int64			chatId;			// to jest parametr in i prawie out. Jesli potrzebujemy nowego ID
 									// to ustawiamy na -1, wraz z pierwsza wypowiedzia w rozmowie;
-									// program wygeneruje nowy ID i zwroci go nam przez ten parametr;
+									// program wygeneruje nowy ID i zwroci go nam przez callback w lp (wp==2);
 									// i tego ID uzywamy w pozniejszych wywolaniach funkcji, poki
 									// nie rozpoczniemy nowej rozmowy; Takze, przy nowych -1;
+	__int64			tempId;			// jesli chatId == -1, to ten parametr jest uzywany do identyfikacji 
+									// w¹tku, jesli w kolejce zapisu jest kilka wiadomosci
+									// z cid == -1 i zostanie wygenerowany nocy cid (i zwrocny callbackiem)
+									// to wszystkie wiadomosci z tempId takim samym jak piewsza wiadomosc
+									// automatycznie otrzymaja nowy cid
 
 	DWORD			flags;
 
 	wtwMessageDef	message;
-};
 
-#define WTW_ARCH_MESSAGE_WFLAG_SYNCHRO	0x00000001	// normalnie zapis jest asynchroniczny,
-													// jesli uzywamy transakcji to powinnismy
-													// takze ustawic te flage
+	WTWFUNCTION		cb;				// ten callback MUSI byc thread safe
+	void *			cbData;
+
+	void * reserved;
+};
 
 #define WTW_ARCH_TRANSACTION			L"Arch/Transaction" // wP - WATR_*
 
@@ -91,3 +97,42 @@ struct wtwArchiveEntryMessage
 #define WTW_ARCH_PAGE_ID_SMS			L"WTW/ArchPage/SMS"
 #define WTW_ARCH_PAGE_ID_MAINTENANCE	L"WTW/ArchPage/Maint"
 #define WTW_ARCH_PAGE_ID_STATS			L"WTW/ArchPage/Stats"
+
+
+struct wtwChatExport
+{
+	__wtwStdStructDefs(wtwChatExport);
+
+	int				structSize;
+
+	wtwMessageDef *	pMessages;
+	int				iMessages;
+
+	void *			pBuffer;	// wtw::CBuffer*
+
+	const wchar_t * profileName;
+
+	DWORD			flags;
+};
+
+#define WTW_CHAT_EXPORT L"WTW/ChatExport" // wp* - wtwChatExport*
+
+struct wtwArchiveSyncEx
+{
+	__wtwStdStructDefs(wtwArchiveSyncEx);
+
+	int				structSize;
+
+	wtwMessageDef *	pMessages; // messages MUST (!) have UMID and UCID set
+	int				iMessages;
+
+	DWORD			flags;
+
+	void *			reserved1;
+	void *			reserved2;
+
+	WTWFUNCTION		cb;
+	void *			cbData;
+};
+
+#define WTW_ARCHIVE_SYNC L"WTW/ArchiveSync" // wp* - wtwArchiveSync*, executed in caller's thread ASYNCHRONOUSLY!

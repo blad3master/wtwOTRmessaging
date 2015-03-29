@@ -1,5 +1,5 @@
 /*
-*** Copyright (C) 2007-2014, K2T.eu
+*** Copyright (C) 2007-2015, K2T.eu
 */
 
 #ifndef _wtw_pl_caps_h_

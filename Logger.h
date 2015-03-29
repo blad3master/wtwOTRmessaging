@@ -52,6 +52,10 @@ inline Logger *Logger::getInstance()
 	return instance;
 }
 
+#if defined(_DEBUG) || !defined(NDEBUG)
+#define _WTWOTRMESSAGING_EXTRA_LOGGING 1
+#endif
+
 
 extern "C" {
 	void __LOG_CRITICAL(const wchar_t *fmt, ...);

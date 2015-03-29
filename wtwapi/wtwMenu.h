@@ -1,9 +1,8 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
-#ifndef __wtw__menu_h__
-#define __wtw__menu_h__
+#pragma once
 
 #include "wtwPlugin.h"
 #include "wtwProtocol.h"
@@ -256,6 +255,7 @@ struct wtwMenuDef
 #define WTW_MIID_MAIN_INF_FB		L"WTW/Info/Facebook"
 #define WTW_MIID_MAIN_INF_FORUM		L"WTW/Info/Forum"
 #define WTW_MIID_MAIN_INF_HELP		L"WTW/Info/Help"
+#define WTW_MIID_MAIN_INF_LICENSE	L"WTW/Info/License"
 #define WTW_MIID_MAIN_INF_CHANGELOG	L"WTW/Info/Changelog"
 #define WTW_MIID_MAIN_INF_UPDATE	L"WTW/Info/Update"
 
@@ -311,6 +311,3 @@ struct wtwMenuDef
 #define WTW_MENU_LOCATION_CHATWND	L"WTW/Loc/ChatWND"	// okno chata
 #define WTW_MENU_LOCATION_CONFWND	L"WTW/Loc/ConfWND"	// okno konferencji
 #define WTW_MENU_LOCATION_MWCTRL	L"WTW/Loc/MWCTRL"	// lista kontaktow
-
-
-#endif

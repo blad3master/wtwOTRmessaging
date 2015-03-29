@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #ifndef __wtw_plugin_settings_h__
@@ -59,6 +59,8 @@ struct wtwDirectoryInfo
 #define WTW_DIRECTORY_PLUGINDATA	0x0007
 #define WTW_DIRECTORY_SCRIPTS		0x0008
 #define WTW_DIRECTORY_LIBRARIES		0x0009
+
+#define WTW_DIRECTORY_PROGRAM_DATA	0x0100
 
 #define WTW_DIRECTORY_FLAG_FULLPATH	0x0001	// C:\Users\User\AppData\Roaming\.wtw\Profiles\Profile\.cache\ - for example
 #define WTW_DIRECTORY_FLAG_RELPATH	0x0002	// .cache\

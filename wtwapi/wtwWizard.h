@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #pragma once
@@ -23,7 +23,7 @@ struct wtwWizard
 	HWND			hParent;		// for DO_MODAL only
 	const wchar_t * iconId;
 
-	POINT			minSize;		// 
+	POINT			minSize;		// sizes are automatically scaled up (or down) depending on current system dpi settings
 	POINT			maxSize;		// 
 	POINT			defSize;		// 
 };

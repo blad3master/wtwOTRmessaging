@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #ifndef __wtw__ctl_h__
@@ -391,7 +391,7 @@ struct wtwAvatarSet
 	int				structSize;
 	
 	const wchar_t * filePath;		// sciezka do pliku, pelna
-	int				avatarType;		// typ grafiki
+	int				result;
 	
 	void		  * contactHandle;	// handle kontaktu, jesli null to ustawiamy net id, SID i ctID w contact info, 
 	wtwContactDef * pContactData;	// jesli cti null, to handle musi byc podany
@@ -403,12 +403,6 @@ struct wtwAvatarSet
 									// ustawiony;
 	DWORD			source;			// skad sie wzial;
 };
-
-#define WTW_AVATAR_TYPE_PNG	0x0001
-#define WTW_AVATAR_TYPE_JPG	0x0002
-#define WTW_AVATAR_TYPE_GIF	0x0003
-#define WTW_AVATAR_TYPE_BMP	0x0004
-#define WTW_AVATAR_TYPE_ICO	0x0005
 
 #define	WTW_AVATAR_SET			L"WTW/CTL/SetAvatar"
 #define	WTW_AVATAR_GET			L"WTW/CTL/GetAvatar"

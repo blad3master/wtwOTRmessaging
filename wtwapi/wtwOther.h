@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #pragma once
@@ -41,7 +41,7 @@
 
 #define WTW_DEFAULT_IMAGES_FITER		L"Obrazki|*.jpg;*.jpeg;*.jpe;*.png;*.gif;*.mng|JPEG|*.jpg;*.jpeg;*.jpe|PNG|*.png;*.mng|GIF|*.gif|Wszystkie pliki|*.*||"
 #define WTW_DEFAULT_FILE_FITER			L"Wszystkie pliki|*.*|Obrazki|*.jpg;*.jpeg;*.jpe;*.png;*.gif;*.mng||"
-#define WTW_DEFAULT_USER_AGENT			L"Mozilla/6.0 (compatile; WTW Network Agent 1.0; U;)"
+#define WTW_DEFAULT_USER_AGENT			L"Mozilla/6.0 (compatible; WTW Network Agent 1.0; U;)"
 #define WTW_DEFAULT_CT_GROUP			L"Kontakty"
 #define WTW_DEFAULT_CT_OFFLIST_GROUP	L"Spoza listy"
 

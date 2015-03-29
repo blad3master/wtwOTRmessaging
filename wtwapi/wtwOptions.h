@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #pragma once
@@ -40,6 +40,33 @@ struct wtwOptionPageDef
 	void		*	cbData;
 
 	void		*	ownerData;	// jakies nasze dane
+};
+
+struct wtwOptionPageDefEx
+{
+	__wtwStdStructDefs(wtwOptionPageDefEx);
+
+	int			structSize;
+
+	const wchar_t *id;			// unikalny ID
+	const wchar_t *parentId;	// ID opzycji pod któr¹ bedzie umieszczona nasza pozycja
+
+	const wchar_t *caption;		// tresc na liscie zakladek w opcjach
+
+	int			flags;			// opcje
+
+	HICON			icon;		// ikonka, and i mean it IKONKA (nie bitmapka) 16x16
+	const wchar_t *iconId;		// albo WTW_GRAPH_ID
+
+	WTWFUNCTION	callback;		// callback do funkcji ktora naszeopcje obsluguje
+	void		*	cbData;
+
+	void		*	ownerData;	// jakies nasze dane
+
+	int			position;
+
+	void *		reserved1;
+	void *		reserved2;
 };
 
 #define WTW_OPTIONS_PAGE_FLAG_GROUPSEC 0x01000000

@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #pragma once
@@ -94,6 +94,6 @@ void __inline __LOG_F(WTWFUNCTIONS* pF,
 	va_list args;
 	va_start(args, format); 
 	wchar_t buf[2048] = { 0 }; 
-	_vsnwprintf_s(buf, sizeof(buf) / sizeof(wchar_t), sizeof(buf) / sizeof(wchar_t), format, args);
+	_vsnwprintf(buf, sizeof(buf) / sizeof(wchar_t), format, args);
 	__LOG(pF, mdl, buf, lvl); 
 } 

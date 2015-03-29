@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2007-2014, K2T.eu
+** Copyright (C) 2007-2015, K2T.eu
 */
 
 #pragma once
@@ -83,7 +83,8 @@ struct wtwHttpProgress
 #define WTW_HTTP_SERVICE_TS_CB_HEADER	0x00000800	// callback is thread-safe, it can be called from worker thred directly
 #define WTW_HTTP_SERVICE_TS_CB_COMPLETE	0x00001000	// callback is thread-safe, it can be called from worker thred directly
 #define WTW_HTTP_SERVICE_TS_CB_WRITE	0x00002000	// callback is thread-safe, it can be called from worker thred directly
-#define WTW_HTTP_SERVICE_THREAD_SAFE_CB 0x00003C00	// 
+#define WTW_HTTP_SERVICE_THREAD_SAFE_CB 0x00003C00	//
+#define WTW_HTTP_SERVICE_SET_FILE_SIZE	0x00004000	//
 
 #define WTW_HTTP_EVENT_DATA			0x0001 // lP - wtwRawDataDef*
 #define WTW_HTTP_EVENT_COMPLETE		0x0002 // lP - wtwHttpStatus*

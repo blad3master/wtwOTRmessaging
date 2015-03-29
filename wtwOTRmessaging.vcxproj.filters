@@ -126,6 +126,9 @@
     <ClInclude Include="OTRL\auth.h">
       <Filter>Header Files\OTRL</Filter>
     </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="wtwapi\plInterface.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
@@ -231,6 +234,9 @@
     <ClInclude Include="wtwapi\wtwInputWindows.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
+    <ClInclude Include="wtwapi\wtwLicense.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
     <ClInclude Include="wtwapi\wtwLog.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
@@ -264,6 +270,9 @@
     <ClInclude Include="wtwapi\wtwPluginSettings.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
+    <ClInclude Include="wtwapi\wtwPolicy.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
     <ClInclude Include="wtwapi\wtwProcAddr.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
@@ -283,6 +292,9 @@
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
     <ClInclude Include="wtwapi\wtwSettings.h">
+      <Filter>Header Files\wtwAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="wtwapi\wtwSharedContacts.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
     <ClInclude Include="wtwapi\wtwSMS.h">
@@ -330,7 +342,7 @@
     <ClInclude Include="wtwapi\wtwWindowMessageFilter.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
-    <ClInclude Include="wtwapi\wtwWinInet.h">
+    <ClInclude Include="wtwapi\wtwWindows.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
     <ClInclude Include="wtwapi\wtwWizard.h">
@@ -339,7 +351,10 @@
     <ClInclude Include="wtwapi\wtwXMPP.h">
       <Filter>Header Files\wtwAPI</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="PeerPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -748,6 +763,12 @@
     </ClCompile>
     <ClCompile Include="libgcrypt\blad3master_gettimeofday.c">
       <Filter>Source Files\libgcrypt</Filter>
+    </ClCompile>
+    <ClCompile Include="PeerPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginSettings.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

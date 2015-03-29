@@ -109,8 +109,13 @@ void Logger::logToFile(const wchar_t *msg)
 			time.wYear, time.wMonth, time.wDay,
 			time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-		fprintf_s(instance->logFileDescriptor, "%s", utf16Toutf8(msg));
-		fprintf_s(instance->logFileDescriptor, "\n");
+		fprintf_s(instance->logFileDescriptor, "%s\n",
+			#ifdef _WTWOTRMESSAGING_USE_DYNAMIC_STRINGS
+				utf16Toutf8(msg).operator LPCSTR()
+			#else
+				utf16Toutf8(msg)
+			#endif
+			);
 		fflush(instance->logFileDescriptor);
 	}
 }

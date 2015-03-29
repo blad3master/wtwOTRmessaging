@@ -48,8 +48,8 @@ private:
 	// makeKey(id,netClass,netId)  =>  chat window handle
 	static std::map<std::wstring, void*> chatWndList;
 
-	static std::wstring makeKey(const wchar_t *id, const wchar_t *netClass, int netId);
-	static std::wstring makeKey(const wtwContactDef *contact);
+	//static std::wstring makeKey(const wchar_t *id, const wchar_t *netClass, int netId); - now in utils.h
+	//static std::wstring makeKey(const wtwContactDef *contact); - now in utils.h
 	static bool wtwContactFromKey(const std::wstring &key, wchar_t *id, wchar_t *netClass, int *netId, size_t strLenBytes);
 
 	static WTW_PTR onChatWndCreate(WTW_PARAM wParam, WTW_PARAM lParam, void* ptr);

@@ -1,5 +1,5 @@
 /*
-*** Copyright (C) 2007-2014, K2T.eu
+*** Copyright (C) 2007-2015, K2T.eu
 */
 
 #pragma once
@@ -38,7 +38,6 @@
 #include "wtwGroupOptions.h"// Group options
 #include "wtwSession.h"		// System's session info events
 #include "wtwChatCommandBar.h" // chatwindow toolbar
-#include "wtwWinInet.h"		// WinInet
 #include "wtwOther.h"		// 
 #include "wtwUriHandlers.h"	// Uri handlers
 #include "wtwToolTips.h"	// Tooltips
