@@ -1261,13 +1261,17 @@ void SettingsBroker::ui_update_keylist()
 			_snprintf_s(accountname, sizeof(accountname), sizeof(accountname), "%s/%d",
 				context->protocol, WtwOtrContext::netIdFromAccountname(context->accountname));
 
+			const auto &li_username = utf8Toutf16(context->username);
+			const auto &li_hash = utf8Toutf16(hash);
+			const auto &li_accountname = utf8Toutf16(accountname);
+
 			LVITEM   lv = { 0 };
 			lv.iItem = index;
 			ListView_InsertItem(ui_keyList, &lv);
-			ListView_SetItemText(ui_keyList, index, 0, const_cast<wchar_t*>(utf8Toutf16(context->username).operator LPCWSTR()));
+			ListView_SetItemText(ui_keyList, index, 0, const_cast<wchar_t*>(li_username.operator LPCWSTR()));
 			ListView_SetItemText(ui_keyList, index, 1, (otrl_context_is_fingerprint_trusted(fingerprint)) ? L"TAK" : L"NIE");
-			ListView_SetItemText(ui_keyList, index, 2, const_cast<wchar_t*>(utf8Toutf16(hash).operator LPCWSTR()));
-			ListView_SetItemText(ui_keyList, index, 3, const_cast<wchar_t*>(utf8Toutf16(accountname).operator LPCWSTR()));
+			ListView_SetItemText(ui_keyList, index, 2, const_cast<wchar_t*>(li_hash.operator LPCWSTR()));
+			ListView_SetItemText(ui_keyList, index, 3, const_cast<wchar_t*>(li_accountname.operator LPCWSTR()));
 			keyList_fingerprints.push_back(fingerprint);
 			++index;
 

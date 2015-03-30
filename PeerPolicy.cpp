@@ -22,7 +22,7 @@ void PeerPolicy::init(wtwOTRmessaging *mainClassPtr)
 }
 
 
-OtrlPolicy PeerPolicy::get(const wchar_t *id, const wchar_t *netClass, int netId)
+OtrlPolicy PeerPolicy::getPopupMenu(const wchar_t *id, const wchar_t *netClass, int netId)
 {
 	OtrlPolicy policy;
 	const auto &key = makeKeyFromPeer(id, netClass, netId);
@@ -37,20 +37,6 @@ OtrlPolicy PeerPolicy::get(const wchar_t *id, const wchar_t *netClass, int netId
 		cache[key] = policy;
 	}
 
-	if (OTRL_POLICY_GLOBAL_SETTING == policy)
-	{
-		SettingsBroker::OTRL_POLICY p = pwtwOTRmessaging->instance->getSettingsBroker().getOtrlPolicy();
-		switch (p) {
-			case SettingsBroker::OTRL_POLICY::NEVER:			policy = OTRL_POLICY_NEVER;			break;
-			case SettingsBroker::OTRL_POLICY::MANUAL:			policy = OTRL_POLICY_MANUAL;		break;
-			case SettingsBroker::OTRL_POLICY::OPPORTUNISTIC:	policy = OTRL_POLICY_OPPORTUNISTIC;	break;
-			case SettingsBroker::OTRL_POLICY::ALWAYS:			policy = OTRL_POLICY_ALWAYS;		break;
-			default:
-				policy = OTRL_POLICY_NEVER;
-				LOG_CRITICAL(L"%s() unknow policy '%d'", __FUNCTIONW__, (int)p);
-		}
-	}
-
 	{
 		const wchar_t *p_text = L"unknown";
 		switch (policy) {
@@ -60,6 +46,32 @@ OtrlPolicy PeerPolicy::get(const wchar_t *id, const wchar_t *netClass, int netId
 		case OTRL_POLICY_ALWAYS:		p_text = L"ALWAYS";			break;
 		}
 		LOG_TRACE(L"%s() policy for user '%s' => '%s'", __FUNCTIONW__, key.c_str(), p_text);
+	}
+
+	return policy;
+}
+
+OtrlPolicy PeerPolicy::getPopupMenu(const wtwContactDef *contact)
+{
+	return getPopupMenu(contact->id, contact->netClass, contact->netId);
+}
+
+OtrlPolicy PeerPolicy::get(const wchar_t *id, const wchar_t *netClass, int netId)
+{
+	OtrlPolicy policy = getPopupMenu(id, netClass, netId);
+
+	if (OTRL_POLICY_GLOBAL_SETTING == policy)
+	{
+		SettingsBroker::OTRL_POLICY p = pwtwOTRmessaging->instance->getSettingsBroker().getOtrlPolicy();
+		switch (p) {
+		case SettingsBroker::OTRL_POLICY::NEVER:			policy = OTRL_POLICY_NEVER;			break;
+		case SettingsBroker::OTRL_POLICY::MANUAL:			policy = OTRL_POLICY_MANUAL;		break;
+		case SettingsBroker::OTRL_POLICY::OPPORTUNISTIC:	policy = OTRL_POLICY_OPPORTUNISTIC;	break;
+		case SettingsBroker::OTRL_POLICY::ALWAYS:			policy = OTRL_POLICY_ALWAYS;		break;
+		default:
+			policy = OTRL_POLICY_NEVER;
+			LOG_CRITICAL(L"%s() unknow policy '%d'", __FUNCTIONW__, (int)p);
+		}
 	}
 
 	return policy;

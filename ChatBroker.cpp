@@ -192,9 +192,19 @@ WTW_PTR ChatBroker::on_WtwOtrmessaging_btn_clicked(WTW_PARAM wParam, WTW_PARAM l
 	setMenuItemIcon(menu, 0, GraphId_help);
 	InsertMenu(menu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, nullptr);
 #if 1
-	OtrlPolicy p = PeerPolicy::get(activeContact);
+	std::wstring global_str = L"Globalna";
+	switch (SettingsBroker::settingsBrokerInstance->getOtrlPolicy())
+	{
+	case SettingsBroker::OTRL_POLICY::NEVER:			global_str += L" (Nigdy)";			break;
+	case SettingsBroker::OTRL_POLICY::MANUAL:			global_str += L" (Rêcznie)";		break;
+	case SettingsBroker::OTRL_POLICY::OPPORTUNISTIC:	global_str += L" (Automatycznie)";	break;
+	case SettingsBroker::OTRL_POLICY::ALWAYS:			global_str += L" (Zawsze)";			break;
+	default: LOG_ERROR(L"%s() unexpected policy", __FUNCTIONW__);
+	}
+
+	OtrlPolicy p = PeerPolicy::getPopupMenu(activeContact);
 	HMENU menu2 = CreatePopupMenu();
-	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_GLOBAL_SETTING ==p )? MF_CHECKED : 0), 20, L"Globalna");
+	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_GLOBAL_SETTING ==p )? MF_CHECKED : 0), 20, global_str.c_str());
 	InsertMenu(menu2, 0, MF_BYPOSITION | MF_SEPARATOR, 0, nullptr);
 	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_NEVER == p) ? MF_CHECKED : 0), 21, L"Nigdy");
 	InsertMenu(menu2, 0, MF_BYPOSITION | MF_STRING | ((OTRL_POLICY_MANUAL == p) ? MF_CHECKED : 0), 22, L"Rêcznie");
