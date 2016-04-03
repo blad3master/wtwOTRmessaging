@@ -1,6 +1,6 @@
 /*
  *  Off-the-Record Messaging library
- *  Copyright (C) 2004-2014  Ian Goldberg, David Goulet, Rob Smits,
+ *  Copyright (C) 2004-2015  Ian Goldberg, David Goulet, Rob Smits,
  *                           Chris Alexander, Willy Lew, Lisa Du,
  *                           Nikita Borisov
  *                           <otr@cypherpunks.ca>
@@ -989,8 +989,11 @@ int otrl_message_receiving(OtrlUserState us, const OtrlMessageAppOps *ops,
 
     otrtag = strstr(message, "?OTR");
     if (otrtag) {
-	/* See if we have a V3 fragment */
-	if (strstr(message, "?OTR|")) {
+	/* See if we have a V3 fragment.  The '4' in the next line is
+	 * strlen("?OTR").  otrtag[4] is the character immediately after
+	 * the "?OTR", and is guaranteed to exist, because in the worst
+	 * case, it is the NUL terminating 'message'. */
+	if (otrtag[4] == '|') {
 	    /* Get the instance tag from fragment header*/
 	    sscanf(otrtag, "?OTR|%x|%x,", &their_instance, &our_instance);
 	    /* Ignore message if it is intended for a different instance */
@@ -1403,13 +1406,6 @@ int otrl_message_receiving(OtrlUserState us, const OtrlMessageAppOps *ops,
 		     * don't try sending anything else to him. */
 		    if (otrl_tlv_find(tlvs, OTRL_TLV_DISCONNECTED)) {
 			otrl_context_force_finished(context);
-				
-				// For some reason, only the sending function detect that context->msgstate is FINISHED and emits
-				// the proper event, however we do not want to wait!
-				// NOTE - now checked by TLVS when processing received msg!
-				//if (ops->handle_msg_event) {
-				//	ops->handle_msg_event(opdata, 100, context, NULL, gcry_error(GPG_ERR_NO_ERROR));
-				//}
 		    }
 
 		    /* If the other side told us to use the current
@@ -1512,7 +1508,7 @@ int otrl_message_receiving(OtrlUserState us, const OtrlMessageAppOps *ops,
 			    unsigned char* nextmsg;
 			    int nextmsglen;
 			    OtrlTLV *sendtlv;
-			    char *sendsmp;
+			    char *sendsmp = NULL;
 			    otrl_sm_step3(context->smstate, tlv->data,
 				    tlv->len, &nextmsg, &nextmsglen);
 
@@ -1567,7 +1563,7 @@ int otrl_message_receiving(OtrlUserState us, const OtrlMessageAppOps *ops,
 			    unsigned char* nextmsg;
 			    int nextmsglen;
 			    OtrlTLV *sendtlv;
-			    char *sendsmp;
+			    char *sendsmp = NULL;
 			    err = otrl_sm_step4(context->smstate, tlv->data,
 				    tlv->len, &nextmsg, &nextmsglen);
 			    /* Set trust level based on result */

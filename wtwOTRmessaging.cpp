@@ -72,7 +72,7 @@ WTWPLUGINFO plugInfo = {
 	L"wtwOTRmessaging",											// nazwa wtyczki
 	L"Implementacja protoko³u Off-the-Record Messaging, "
 	L"który umo¿liwia szyfrowanie oraz uwierzytelnianie rozmów.", // opis wtyczki
-	L"(c) 2014-2015",											// copyrights
+	L"(c) 2014-2016",											// copyrights
 	L"blad3master",												// autor
 	L"blad3master@blad3master.com",								// email
 	L"http://blad3master.com",									// strona www
